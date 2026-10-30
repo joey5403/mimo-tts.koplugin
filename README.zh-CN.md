@@ -218,27 +218,36 @@ Content-Type: application/json
 
 ## 版本与发布
 
+版本号与 changelog 都在**发布时自动生成**——无需手工保持同步：
+
 - **[语义化版本](https://semver.org/)**：`MAJOR` = 不兼容变更（设置格式、请求契约），
   `MINOR` = 向后兼容的新功能，`PATCH` = 修复
-- 版本号唯一来源是 `main.lua`（`version = "x.y.z"`），菜单「关于 MiMo TTS」可见；
-  git tag `vX.Y.Z` 必须与之一致（发布脚本强制校验）
-- 每个版本在 [CHANGELOG.md](CHANGELOG.md) 有对应记录
-- 发布流程：
-  1. 修改 `main.lua` 的 `version` 并补 `CHANGELOG.md` 条目
-  2. `make release` —— 语法检查、翻译编译、生成
-     `dist/mimo-tts.koplugin-vX.Y.Z.zip`（及 `dist/vX.Y.Z-notes.md`）
-  3. `git commit -am "Release vX.Y.Z" && git tag vX.Y.Z && git push origin main --tags`
-  （提交由本地 pre-commit 钩子把关；CI 不在 GitHub 上运行）
-- **Release Action**：推送 `v*` 标签会触发
-  [`.github/workflows/release.yml`](.github/workflows/release.yml)——在干净环境
-  重新跑检查、重建 zip、以 CHANGELOG 对应段落为说明自动创建 GitHub Release；
-  也可在 Actions → Release → Run workflow 对已有标签手动触发，重复运行只刷新附件
+- **版本号唯一来源 = git tag**：发布时注入产物（`mimo_version.lua`，菜单
+  「关于 MiMo TTS」可见）；开发安装则注入 `git describe` 版本串
+- **changelog = git 历史**：`make changelog` 重新生成 `CHANGELOG.md`，
+  Release 说明来自同一生成器（按 `feat:`、`fix:`、`docs:` 等提交前缀分组）
+- 发布流程（维护者，从最新 `main` 执行）：
+  - `make release-bump BUMP=patch|minor|major` —— 自动计算下一个版本号、
+    打标签并推送；Release Action 随之发布到
+    <https://github.com/joey5403/mimo-tts.koplugin/releases>
+  - 或手动推送 `v*` 标签指定明确版本
+  - `make release` 本地构建 `dist/mimo-tts.koplugin-vX.Y.Z.zip` 供检查
+- **Release Action**：推送 `v*` 标签（或带 bump 手动触发）会运行
+  [`.github/workflows/release.yml`](.github/workflows/release.yml)：检查、
+  构建带版本注入的 zip、生成说明、创建 GitHub Release
 - 用户安装方式：下载 Release zip 解压到插件目录，或用 `install.sh`
+
+## 参与贡献
+
+欢迎提 PR——`main` 受分支保护，只接受 Pull Request。工作流、开发环境、
+代码规范（约定式提交会进入自动生成的 changelog）与发布流程见
+[CONTRIBUTING.zh-CN.md](CONTRIBUTING.zh-CN.md)（[English](CONTRIBUTING.md)）。
 
 ## 开发与测试
 
 **所有 CI 都在本地运行——GitHub Action 只有 release 一个。**
-本地 CI 门禁在每次提交前执行（git pre-commit 钩子）：
+本地 CI 门禁在每次提交前执行（`make install-hooks` 安装的 git pre-commit
+钩子；PR 由它把关，而非 GitHub 上的检查项）：
 
 ```sh
 make install-hooks   # 一次性：安装 pre-commit 钩子

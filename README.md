@@ -269,32 +269,44 @@ The playback manager picks the best backend automatically (force one via
 
 ## Versioning & releases
 
+Versions and changelogs are **generated at release time** — there is nothing
+to keep in sync by hand:
+
 - **[SemVer](https://semver.org/)**: `MAJOR` = incompatible changes (settings
   format, request contract), `MINOR` = backwards-compatible features,
   `PATCH` = fixes
-- the version lives in `main.lua` (`version = "x.y.z"`) and is shown in
-  *About MiMo TTS*; git tags `vX.Y.Z` must match it (enforced by the release
-  script)
-- every release has an entry in [CHANGELOG.md](CHANGELOG.md)
-- cutting a release:
-  1. bump `version` in `main.lua` and add a `CHANGELOG.md` entry
-  2. `make release` — syntax check, translation compile,
-     `dist/mimo-tts.koplugin-vX.Y.Z.zip` (plus `dist/vX.Y.Z-notes.md`)
-  3. `git commit -am "Release vX.Y.Z" && git tag vX.Y.Z && git push origin main --tags`
-  (commits are gated by the local pre-commit hook; CI never runs on GitHub)
-- **Release action**: pushing a `v*` tag runs
-  [`.github/workflows/release.yml`](.github/workflows/release.yml), which
-  re-runs the checks in a clean environment, rebuilds the zip and publishes a
-  GitHub release with the changelog section as notes; it can also be triggered
-  manually for an existing tag (Actions → Release → Run workflow), and re-runs
-  just refresh the release assets
-- end users install either from the release zip (extract `mimo-tts.koplugin`
-  into their plugins directory) or via `install.sh`
+- **version source of truth = git tags**: the release stamps it into the
+  artifact (`mimo_version.lua`, shown in *About MiMo TTS*); dev installs
+  stamp `git describe` output instead
+- **changelog = git history**: `make changelog` regenerates `CHANGELOG.md`
+  and release notes come from the same generator, grouping commit subjects by
+  their conventional prefixes (`feat:`, `fix:`, `docs:`, ...)
+- cutting a release (maintainers, from an up-to-date `main`):
+  - `make release-bump BUMP=patch|minor|major` — computes the next version,
+    creates the tag and pushes it; the release action then publishes
+    <https://github.com/joey5403/mimo-tts.koplugin/releases>
+  - or push a `v*` tag manually for an explicit version
+  - `make release` builds `dist/mimo-tts.koplugin-vX.Y.Z.zip` locally for
+    inspection (`make release RELEASE_ARGS="--bump patch"` for a dry run)
+- **Release action**: pushing a `v*` tag (or dispatching with a bump) runs
+  [`.github/workflows/release.yml`](.github/workflows/release.yml): checks,
+  zip build with the stamped version, auto-generated notes, GitHub release
+- end users install from the release zip (extract `mimo-tts.koplugin` into
+  their plugins directory) or via `install.sh`
+
+## Contributing
+
+PRs are welcome — `main` is protected and accepts changes through pull
+requests only. See [CONTRIBUTING.md](CONTRIBUTING.md)
+([简体中文](CONTRIBUTING.zh-CN.md)) for the workflow, development setup, code
+guidelines (conventional commits feed the generated changelog) and the release
+process.
 
 ## Development & testing
 
 **All CI runs locally — the only GitHub Action is the release workflow.**
-The local CI gate runs before every commit (git pre-commit hook):
+The local CI gate runs before every commit (git pre-commit hook, installed by
+`make install-hooks`; PRs are gated by it rather than by GitHub checks):
 
 ```sh
 make install-hooks   # once: installs the pre-commit hook
