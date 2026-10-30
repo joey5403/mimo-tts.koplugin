@@ -55,9 +55,25 @@ install-hooks:
 	chmod +x .git/hooks/pre-commit
 	@echo "pre-commit hook installed (runs 'make ci' before every commit)"
 
+# regenerate CHANGELOG.md from git history
+changelog:
+	python3 tools/release-notes.py --changelog > CHANGELOG.md
+	@echo "CHANGELOG.md regenerated from git history"
+
+# build a release zip locally (version from the tag / --version / --bump)
 release: check mo
-	sh tools/release.sh
+	sh tools/release.sh $(RELEASE_ARGS)
+
+# one-command release: compute the next version, tag it and push; the
+# release action builds and publishes when it sees the new tag
+release-bump:
+	@V=$$(sh tools/next-version.sh $(BUMP)); \
+	git tag -a v$$V -m "MiMo TTS Read-aloud v$$V" && \
+	git push origin v$$V && \
+	echo "tagged v$$V -- the release action will build and publish it"
 
 LUAJIT ?= luajit
 
-.PHONY: pot mo po-update check test e2e ci install-hooks release
+.PHONY: pot mo po-update check test e2e ci install-hooks changelog release release-bump
+
+BUMP ?= patch

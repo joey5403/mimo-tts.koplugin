@@ -1,44 +1,59 @@
 name: Release
 
-# Builds and publishes a GitHub release when a version tag (v*) is pushed.
-# Can also be triggered manually for an existing tag.
+# Release flow: versions and changelogs are generated automatically.
 #
-#   git tag v1.2.3 && git push origin v1.2.3
+#   * push a v* tag          -> build + publish the release for that tag
+#   * run with a `bump`      -> compute the next version (patch/minor/major),
+#                               create the tag; the tag push then runs the
+#                               build + publish job above
 #
-# The workflow validates the tag against main.lua's version, runs the syntax
-# and translation checks, builds the installable plugin zip and attaches it to
-# a GitHub release whose notes come from CHANGELOG.md.
+# The artifact carries the version stamped into mimo_version.lua at build
+# time (single source of truth: git tags); notes are generated from the git
+# history by tools/release-notes.py.
 
 on:
   push:
     tags: [ "v*" ]
   workflow_dispatch:
     inputs:
-      tag:
-        description: "Existing tag to (re)release, e.g. v1.0.0"
-        required: true
+      bump:
+        description: "Version bump (the version number and tag are generated automatically)"
+        type: choice
+        options: [ patch, minor, major ]
+        default: patch
 
 permissions:
   contents: write
 
 jobs:
-  release:
+  # generate version + tag (dispatch only); the pushed tag triggers `release`
+  cut-release:
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
-      - name: Resolve tag
-        id: tag
-        run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "tag=${{ inputs.tag }}" >> "$GITHUB_OUTPUT"
-          else
-            echo "tag=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
-          fi
-
       - name: Checkout
         uses: actions/checkout@v5
         with:
-          fetch-depth: 0          # tags are needed for the version check
-          ref: ${{ steps.tag.outputs.tag }}
+          fetch-depth: 0          # tags are needed for the version calculation
+
+      - name: Create version tag
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          V=$(sh tools/next-version.sh "${{ inputs.bump }}")
+          git tag -a "v$V" -m "MiMo TTS Read-aloud v$V"
+          git push origin "v$V"
+          echo "cut-release: tagged v$V -- the release job will publish it"
+
+  release:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0          # tags are needed for the changelog ranges
+          ref: ${{ github.ref_name }}
 
       - name: Install dependencies
         run: |
@@ -46,34 +61,20 @@ jobs:
           sudo apt-get install -y --no-install-recommends luajit gettext zip
 
       - name: Build release zip
-        # tools/release.sh: lua syntax check, catalog compile, version/tag
-        # consistency check, dist/mimo-tts.koplugin-<tag>.zip
+        # tools/release.sh: stamps mimo_version.lua from the tag, runs the
+        # syntax/catalog checks, generates notes and builds dist/*.zip
         run: make release
 
       - name: Prepare release notes
-        # Self-contained: older tags may not carry tools/release-notes.py yet.
         run: |
-          TAG="${{ steps.tag.outputs.tag }}"
-          if [ -f tools/release-notes.py ]; then
-            python3 tools/release-notes.py "$TAG"
-          else
-            python3 - "$TAG" <<'PY'
-          import re, sys
-          version = sys.argv[1].lstrip("v")
-          text = open("CHANGELOG.md", encoding="utf-8").read()
-          m = re.search(r"^## \[%s\][ \t]*-[ \t]*(\S+)[ \t]*\n(.*?)(?=^## \[|\Z)" % re.escape(version), text, re.M | re.S)
-          if not m:
-              sys.exit("CHANGELOG.md has no entry for version %s" % version)
-          print("Changes in v%s (%s)\n" % (version, m.group(1)))
-          print(m.group(2).strip())
-          PY
-          fi > /tmp/notes.md
+          python3 tools/release-notes.py "${GITHUB_REF_NAME}" > /tmp/notes.md 2>/dev/null \
+            || echo "See the commit history for changes." > /tmp/notes.md
 
       - name: Create GitHub release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          TAG="${{ steps.tag.outputs.tag }}"
+          TAG="${GITHUB_REF_NAME}"
           TITLE="MiMo TTS Read-aloud $TAG"
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release upload "$TAG" dist/*.zip --clobber

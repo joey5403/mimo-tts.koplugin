@@ -65,10 +65,20 @@ local PRESET_VOICES = {
     { id = "Dean", label = _("Dean (English, male)") },
 }
 
+-- Version stamped into mimo_version.lua at build/install time; the single
+-- source of truth is the git tag (see tools/stamp-version.sh).
+local plugin_version = "dev"
+do
+    local ok, v = pcall(require, "mimo_version")
+    if ok and type(v) == "string" and v ~= "" then
+        plugin_version = v
+    end
+end
+
 local MiMoTTS = WidgetContainer:extend{
     name = "mimo_tts",
     is_doc_only = false,
-    version = "1.0.2", -- release version (kept in sync with git tags vX.Y.Z)
+    version = plugin_version,
 }
 
 -- Settings & instances -----------------------------------------------------
