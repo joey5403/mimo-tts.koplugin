@@ -279,9 +279,14 @@ The playback manager picks the best backend automatically (force one via
 - cutting a release:
   1. bump `version` in `main.lua` and add a `CHANGELOG.md` entry
   2. `make release` — syntax check, translation compile,
-     `dist/mimo-tts.koplugin-vX.Y.Z.zip`
+     `dist/mimo-tts.koplugin-vX.Y.Z.zip` (plus `dist/vX.Y.Z-notes.md`)
   3. `git commit -am "Release vX.Y.Z" && git tag vX.Y.Z && git push origin main --tags`
-  4. create a GitHub release for `vX.Y.Z` and attach the zip
+- **CI releases**: pushing a `v*` tag runs
+  [`.github/workflows/release.yml`](.github/workflows/release.yml), which
+  re-runs the checks in a clean environment, rebuilds the zip and publishes a
+  GitHub release with the changelog section as notes; it can also be triggered
+  manually for an existing tag (Actions → Release → Run workflow), and re-runs
+  just refresh the release assets
 - end users install either from the release zip (extract `mimo-tts.koplugin`
   into their plugins directory) or via `install.sh`
 

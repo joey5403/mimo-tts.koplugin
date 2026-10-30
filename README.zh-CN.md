@@ -226,9 +226,12 @@ Content-Type: application/json
 - 发布流程：
   1. 修改 `main.lua` 的 `version` 并补 `CHANGELOG.md` 条目
   2. `make release` —— 语法检查、翻译编译、生成
-     `dist/mimo-tts.koplugin-vX.Y.Z.zip`
+     `dist/mimo-tts.koplugin-vX.Y.Z.zip`（及 `dist/vX.Y.Z-notes.md`）
   3. `git commit -am "Release vX.Y.Z" && git tag vX.Y.Z && git push origin main --tags`
-  4. 在 GitHub 为 `vX.Y.Z` 创建 Release 并附上 zip
+- **CI 自动发布**：推送 `v*` 标签会触发
+  [`.github/workflows/release.yml`](.github/workflows/release.yml)——在干净环境
+  重新跑检查、重建 zip、以 CHANGELOG 对应段落为说明自动创建 GitHub Release；
+  也可在 Actions → Release → Run workflow 对已有标签手动触发，重复运行只刷新附件
 - 用户安装方式：下载 Release zip 解压到插件目录，或用 `install.sh`
 
 ## 开发与测试

@@ -49,4 +49,8 @@ OUT="dist/mimo-tts.koplugin-$TAG.zip"
 rm -f "$OUT"
 (cd "$STAGING" && zip -qr "$OLDPWD/$OUT" mimo-tts.koplugin)
 echo "release: built $OUT ($(du -h "$OUT" | cut -f1))"
+
+# 5) release notes from the CHANGELOG (same source the CI workflow uses)
+python3 tools/release-notes.py "$TAG" > "dist/$TAG-notes.md"
+echo "release: notes written to dist/$TAG-notes.md"
 echo "release: next: git tag $TAG && git push origin main --tags"

@@ -1,0 +1,66 @@
+name: Release
+
+# Builds and publishes a GitHub release when a version tag (v*) is pushed.
+# Can also be triggered manually for an existing tag.
+#
+#   git tag v1.2.3 && git push origin v1.2.3
+#
+# The workflow validates the tag against main.lua's version, runs the syntax
+# and translation checks, builds the installable plugin zip and attaches it to
+# a GitHub release whose notes come from CHANGELOG.md.
+
+on:
+  push:
+    tags: [ "v*" ]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing tag to (re)release, e.g. v1.0.0"
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Resolve tag
+        id: tag
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "tag=${{ inputs.tag }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0          # tags are needed for the version check
+          ref: ${{ steps.tag.outputs.tag }}
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends luajit gettext zip
+
+      - name: Build release zip
+        # tools/release.sh: lua syntax check, catalog compile, version/tag
+        # consistency check, dist/mimo-tts.koplugin-<tag>.zip
+        run: make release
+
+      - name: Prepare release notes
+        run: python3 tools/release-notes.py "${{ steps.tag.outputs.tag }}" > /tmp/notes.md
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${{ steps.tag.outputs.tag }}"
+          TITLE="MiMo TTS Read-aloud $TAG"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" dist/*.zip --clobber
+          else
+            gh release create "$TAG" dist/*.zip --title "$TITLE" --notes-file /tmp/notes.md
+          fi
