@@ -1,0 +1,221 @@
+#: generated from the menu/settings UI strings
+msgid ""
+msgstr ""
+"Project-Id-Version: mimo-tts\n"
+"Language: zh_CN\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+msgid "API & model settings…"
+msgstr "接口与模型设置…"
+
+msgid "API base URL"
+msgstr "API 地址"
+
+msgid "API key"
+msgstr "API Key"
+
+msgid "Audio cache cleared"
+msgstr "语音缓存已清除"
+
+msgid "Audio format (mp3 / wav)"
+msgstr "音频格式（mp3 / wav）"
+
+msgid "Bingtang (Chinese, female)"
+msgstr "冰糖（中文·女）"
+
+msgid "Birch (Chinese, male)"
+msgstr "白桦（中文·男）"
+
+msgid "Cancel"
+msgstr "取消"
+
+msgid "Chloe (English, female)"
+msgstr "Chloe（英文·女）"
+
+msgid "Choose preset voice"
+msgstr "选择预置音色"
+
+msgid "Choose preset voice (current: %1)"
+msgstr "选择预置音色（当前：%1）"
+
+msgid "Clear audio cache"
+msgstr "清除语音缓存"
+
+msgid "Dean (English, male)"
+msgstr "Dean（英文·男）"
+
+msgid "Delete"
+msgstr "清除"
+
+msgid "Delete all cached audio files?"
+msgstr "清除所有已缓存的语音文件？"
+
+msgid "Finished reading"
+msgstr "听书结束"
+
+msgid "Jasmine (Chinese, female)"
+msgstr "茉莉（中文·女）"
+
+msgid "Listen to the whole book (auto page turn)"
+msgstr "连续听书（自动翻页）"
+
+msgid "Max segment length (longer ones are split)"
+msgstr "单句最大字数（超长句自动切分）"
+
+msgid "MiMo TTS API & model settings"
+msgstr "MiMo TTS 接口与模型设置"
+
+msgid "MiMo TTS Read-aloud"
+msgstr "MiMo TTS 语音听书"
+
+msgid "MiMo TTS playback & segmentation settings"
+msgstr "MiMo TTS 播放与分段设置"
+
+msgid "MiMo TTS voice & style settings"
+msgstr "MiMo TTS 音色与风格设置"
+
+msgid "MiMo TTS: next segment"
+msgstr "MiMo TTS: 下一段"
+
+msgid "MiMo TTS: previous segment"
+msgstr "MiMo TTS: 上一段"
+
+msgid "MiMo TTS: read current page"
+msgstr "MiMo TTS: 朗读本页"
+
+msgid "MiMo TTS: read the whole book"
+msgstr "MiMo TTS: 连续听书"
+
+msgid "MiMo TTS: start/stop reading"
+msgstr "MiMo TTS: 开始/停止听书"
+
+msgid "MiMo TTS: stop reading"
+msgstr "MiMo TTS: 停止朗读"
+
+msgid "MiMo default"
+msgstr "MiMo-默认"
+
+msgid "Mia (English, female)"
+msgstr "Mia（英文·女）"
+
+msgid "Milo (English, male)"
+msgstr "Milo（英文·男）"
+
+msgid "Next segment"
+msgstr "下一段"
+
+msgid "No readable text found"
+msgstr "没有提取到可朗读的文字"
+
+msgid "No text selected (long-press to select text first)"
+msgstr "没有选中的文字（先长按选择文本）"
+
+msgid "Playback & segmentation settings…"
+msgstr "播放与分段设置…"
+
+msgid "Playback backend (auto/command/opensles)"
+msgstr "播放后端（auto/command/opensles）"
+
+msgid "Playback diagnostics…"
+msgstr "播放器诊断…"
+
+msgid "Player command (empty = auto-detect)"
+msgstr "播放器命令（留空自动检测）"
+
+msgid "Please open a book first"
+msgstr "请先打开一本书"
+
+msgid "Previous segment"
+msgstr "上一段"
+
+msgid "Read current page"
+msgstr "朗读当前页"
+
+msgid "Read selected text"
+msgstr "朗读选中文字"
+
+msgid "Reading icon added to the top menu (reopen the menu to see it)"
+msgstr "已在顶部菜单添加听书图标（重新打开菜单可见）"
+
+msgid "Reading icon removed from the top menu"
+msgstr "已移除顶部菜单听书图标"
+
+msgid "Reading stopped"
+msgstr "已停止朗读"
+
+msgid "Reading underline disabled"
+msgstr "已关闭朗读下划线"
+
+msgid "Reading underline enabled"
+msgstr "已开启朗读下划线"
+
+msgid "Required"
+msgstr "必填"
+
+msgid "Save"
+msgstr "保存"
+
+msgid "Settings saved"
+msgstr "设置已保存"
+
+msgid "Soda (Chinese, male)"
+msgstr "苏打（中文·男）"
+
+msgid "Speed (1.0 = normal)"
+msgstr "语速（1.0 为正常语速）"
+
+msgid "Start reading (page %1, %2 segments)"
+msgstr "开始朗读（第 %1 页，共 %2 段）"
+
+msgid "Stop reading"
+msgstr "停止朗读"
+
+msgid "Streaming synthesis (steadier for long texts)"
+msgstr "流式合成（长文本更稳）"
+
+msgid "Streaming synthesis disabled"
+msgstr "已关闭流式合成"
+
+msgid "Streaming synthesis enabled"
+msgstr "已开启流式合成"
+
+msgid "Style prompt (natural-language instruction; optional)"
+msgstr "风格提示（自然语言指令，可留空）"
+
+msgid "Style tag (e.g. gentle; optional)"
+msgstr "风格标签（如 温柔/磁性，可留空）"
+
+msgid "Synthesizing test audio…"
+msgstr "正在合成测试音频…"
+
+msgid "TTS model"
+msgstr "模型"
+
+msgid "Test reading"
+msgstr "测试朗读"
+
+msgid "Top menu icon"
+msgstr "顶部菜单图标"
+
+msgid "Underline text while reading"
+msgstr "播放时给文字加下划线"
+
+msgid "Voice & style settings…"
+msgstr "音色与风格设置…"
+
+msgid "Voice changed to %1"
+msgstr "已切换音色：%1"
+
+msgid "Voice description (required for voice design)"
+msgstr "音色描述（音色设计模式必填）"
+
+msgid "Voice sample file (voice clone mode, mp3/wav)"
+msgstr "音色样本文件（音色复刻模式，mp3/wav）"
+
+msgid "e.g. A mellow, deep middle-aged male voice"
+msgstr "例如：丝滑醇厚的中年男声"
+
+msgid "e.g. A warm audiobook narrator"
+msgstr "例如：温柔的有声书旁白"
