@@ -15,5 +15,6 @@ rm -rf "$DEST"
 cp -r "$SRC_DIR" "$DEST"
 rm -f "$DEST/install.sh"
 
-echo "MiMo TTS plugin installed to: $DEST"
+VERSION=$(sed -n 's/^[[:space:]]*version = "\(.*\)".*$/\1/p' "$SRC_DIR/main.lua" | head -1)
+echo "MiMo TTS plugin v$VERSION installed to: $DEST"
 echo "Restart KOReader, then: 菜单 → 更多工具 → MiMo TTS 语音听书"

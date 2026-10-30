@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mimo-tts 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-30 16:59+0800\n"
+"POT-Creation-Date: 2026-10-30 20:21+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: _meta.lua:3 main.lua:208
+#: _meta.lua:3 main.lua:209
 msgid "MiMo TTS Read-aloud"
 msgstr ""
 
@@ -61,255 +61,263 @@ msgstr ""
 msgid "Dean (English, male)"
 msgstr ""
 
-#: main.lua:154
+#: main.lua:155
 msgid "MiMo TTS: start/stop reading"
 msgstr ""
 
-#: main.lua:156
+#: main.lua:157
 msgid "MiMo TTS: read current page"
 msgstr ""
 
-#: main.lua:158
+#: main.lua:159
 msgid "MiMo TTS: read the whole book"
 msgstr ""
 
-#: main.lua:160
+#: main.lua:161
 msgid "MiMo TTS: stop reading"
 msgstr ""
 
-#: main.lua:162
+#: main.lua:163
 msgid "MiMo TTS: next segment"
 msgstr ""
 
-#: main.lua:164
+#: main.lua:165
 msgid "MiMo TTS: previous segment"
 msgstr ""
 
-#: main.lua:225
+#: main.lua:226
 msgid "Listen to the whole book (auto page turn)"
 msgstr ""
 
-#: main.lua:231
+#: main.lua:232
 msgid "Read current page"
 msgstr ""
 
-#: main.lua:237
+#: main.lua:238
 msgid "Read selected text"
 msgstr ""
 
-#: main.lua:243
+#: main.lua:244
 msgid "Next segment"
 msgstr ""
 
-#: main.lua:249
+#: main.lua:250
 msgid "Previous segment"
 msgstr ""
 
-#: main.lua:255
+#: main.lua:256
 msgid "Stop reading"
 msgstr ""
 
-#: main.lua:261
+#: main.lua:262
 msgid "Test reading"
 msgstr ""
 
-#: main.lua:267
+#: main.lua:268
 msgid "Playback diagnostics…"
 msgstr ""
 
-#: main.lua:276
+#: main.lua:277
 msgid "Choose preset voice"
 msgstr ""
 
-#: main.lua:285
+#: main.lua:286
 msgid "Choose preset voice (current: %1)"
 msgstr ""
 
-#: main.lua:292
+#: main.lua:293
 msgid "Streaming synthesis (steadier for long texts)"
 msgstr ""
 
-#: main.lua:301
+#: main.lua:302
 msgid "Streaming synthesis enabled"
 msgstr ""
 
-#: main.lua:301
+#: main.lua:302
 msgid "Streaming synthesis disabled"
 msgstr ""
 
-#: main.lua:307
+#: main.lua:308
 msgid "Top menu icon"
 msgstr ""
 
-#: main.lua:317
+#: main.lua:318
 msgid "Underline text while reading"
 msgstr ""
 
-#: main.lua:329
+#: main.lua:330
 msgid "Reading underline enabled"
 msgstr ""
 
-#: main.lua:329
+#: main.lua:330
 msgid "Reading underline disabled"
 msgstr ""
 
-#: main.lua:335
+#: main.lua:336
 msgid "API & model settings…"
 msgstr ""
 
-#: main.lua:341
+#: main.lua:342
 msgid "Voice & style settings…"
 msgstr ""
 
-#: main.lua:347
+#: main.lua:348
 msgid "Playback & segmentation settings…"
 msgstr ""
 
-#: main.lua:353
+#: main.lua:354
 msgid "Clear audio cache"
 msgstr ""
 
-#: main.lua:483
+#: main.lua:360
+msgid "About MiMo TTS"
+msgstr ""
+
+#: main.lua:370
+msgid "MiMo TTS Read-aloud v%1"
+msgstr ""
+
+#: main.lua:499
 msgid "Reading icon added to the top menu (reopen the menu to see it)"
 msgstr ""
 
-#: main.lua:484
+#: main.lua:500
 msgid "Reading icon removed from the top menu"
 msgstr ""
 
-#: main.lua:533
+#: main.lua:549
 msgid "Voice changed to %1"
 msgstr ""
 
-#: main.lua:554
+#: main.lua:570
 msgid "Please open a book first"
 msgstr ""
 
-#: main.lua:571
+#: main.lua:587
 msgid "No text selected (long-press to select text first)"
 msgstr ""
 
-#: main.lua:579
+#: main.lua:595
 msgid "No readable text found"
 msgstr ""
 
-#: main.lua:586
+#: main.lua:602
 msgid "Start reading (page %1, %2 segments)"
 msgstr ""
 
-#: main.lua:600
+#: main.lua:616
 msgid "Reading stopped"
 msgstr ""
 
-#: main.lua:607
+#: main.lua:623
 msgid "Finished reading"
 msgstr ""
 
-#: main.lua:652 main.lua:975
+#: main.lua:668 main.lua:991
 msgid "MiMo TTS 合成失败：%1"
 msgstr ""
 
-#: main.lua:847
+#: main.lua:863
 msgid "MiMo TTS API & model settings"
 msgstr ""
 
-#: main.lua:849
+#: main.lua:865
 msgid "API base URL"
 msgstr ""
 
-#: main.lua:850
+#: main.lua:866
 msgid "API key"
 msgstr ""
 
-#: main.lua:850
+#: main.lua:866
 msgid "Required"
 msgstr ""
 
-#: main.lua:851
+#: main.lua:867
 msgid "TTS model"
 msgstr ""
 
-#: main.lua:852
+#: main.lua:868
 msgid "Audio format (mp3 / wav)"
 msgstr ""
 
-#: main.lua:857 main.lua:897 main.lua:936
+#: main.lua:873 main.lua:913 main.lua:952
 msgid "Cancel"
 msgstr ""
 
-#: main.lua:864 main.lua:904 main.lua:943
+#: main.lua:880 main.lua:920 main.lua:959
 msgid "Save"
 msgstr ""
 
-#: main.lua:874 main.lua:913 main.lua:956
+#: main.lua:890 main.lua:929 main.lua:972
 msgid "Settings saved"
 msgstr ""
 
-#: main.lua:887
+#: main.lua:903
 msgid "MiMo TTS voice & style settings"
 msgstr ""
 
-#: main.lua:889
+#: main.lua:905
 msgid "Style tag (e.g. gentle; optional)"
 msgstr ""
 
-#: main.lua:890
+#: main.lua:906
 msgid "Style prompt (natural-language instruction; optional)"
 msgstr ""
 
-#: main.lua:890
+#: main.lua:906
 msgid "e.g. A warm audiobook narrator"
 msgstr ""
 
-#: main.lua:891
+#: main.lua:907
 msgid "Voice description (required for voice design)"
 msgstr ""
 
-#: main.lua:891
+#: main.lua:907
 msgid "e.g. A mellow, deep middle-aged male voice"
 msgstr ""
 
-#: main.lua:892
+#: main.lua:908
 msgid "Voice sample file (voice clone mode, mp3/wav)"
 msgstr ""
 
-#: main.lua:926
+#: main.lua:942
 msgid "MiMo TTS playback & segmentation settings"
 msgstr ""
 
-#: main.lua:928
+#: main.lua:944
 msgid "Speed (1.0 = normal)"
 msgstr ""
 
-#: main.lua:929
+#: main.lua:945
 msgid "Max segment length (longer ones are split)"
 msgstr ""
 
-#: main.lua:930
+#: main.lua:946
 msgid "Player command (empty = auto-detect)"
 msgstr ""
 
-#: main.lua:931
+#: main.lua:947
 msgid "Playback backend (auto/command/opensles)"
 msgstr ""
 
-#: main.lua:968
+#: main.lua:984
 msgid "你好，这是 MiMo TTS 语音听书测试。"
 msgstr ""
 
-#: main.lua:971
+#: main.lua:987
 msgid "Synthesizing test audio…"
 msgstr ""
 
-#: main.lua:988
+#: main.lua:1004
 msgid "Delete all cached audio files?"
 msgstr ""
 
-#: main.lua:989
+#: main.lua:1005
 msgid "Delete"
 msgstr ""
 
-#: main.lua:993
+#: main.lua:1009
 msgid "Audio cache cleared"
 msgstr ""
 

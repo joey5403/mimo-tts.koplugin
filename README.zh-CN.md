@@ -216,6 +216,21 @@ Content-Type: application/json
 | “没有提取到可朗读的文字” | 该页可能是图片/扫描版（PDF 需要文字层），可长按选中文字后“朗读选中文字” |
 | 播放没有声音 | 检查设备音量/蓝牙；先用“测试朗读”验证 |
 
+## 版本与发布
+
+- **[语义化版本](https://semver.org/)**：`MAJOR` = 不兼容变更（设置格式、请求契约），
+  `MINOR` = 向后兼容的新功能，`PATCH` = 修复
+- 版本号唯一来源是 `main.lua`（`version = "x.y.z"`），菜单「关于 MiMo TTS」可见；
+  git tag `vX.Y.Z` 必须与之一致（发布脚本强制校验）
+- 每个版本在 [CHANGELOG.md](CHANGELOG.md) 有对应记录
+- 发布流程：
+  1. 修改 `main.lua` 的 `version` 并补 `CHANGELOG.md` 条目
+  2. `make release` —— 语法检查、翻译编译、生成
+     `dist/mimo-tts.koplugin-vX.Y.Z.zip`
+  3. `git commit -am "Release vX.Y.Z" && git tag vX.Y.Z && git push origin main --tags`
+  4. 在 GitHub 为 `vX.Y.Z` 创建 Release 并附上 zip
+- 用户安装方式：下载 Release zip 解压到插件目录，或用 `install.sh`
+
 ## 开发与测试
 
 - 纯 Lua 实现，无外部 Lua 依赖；`base64.lua` / `chunker.lua` / `mimoapi.lua` /

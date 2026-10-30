@@ -267,6 +267,24 @@ The playback manager picks the best backend automatically (force one via
 | no readable text found | the page may be a scanned image (PDFs need a text layer); use *Read selected text* after long-pressing |
 | no sound | check volume/Bluetooth, then try *Test reading* |
 
+## Versioning & releases
+
+- **[SemVer](https://semver.org/)**: `MAJOR` = incompatible changes (settings
+  format, request contract), `MINOR` = backwards-compatible features,
+  `PATCH` = fixes
+- the version lives in `main.lua` (`version = "x.y.z"`) and is shown in
+  *About MiMo TTS*; git tags `vX.Y.Z` must match it (enforced by the release
+  script)
+- every release has an entry in [CHANGELOG.md](CHANGELOG.md)
+- cutting a release:
+  1. bump `version` in `main.lua` and add a `CHANGELOG.md` entry
+  2. `make release` — syntax check, translation compile,
+     `dist/mimo-tts.koplugin-vX.Y.Z.zip`
+  3. `git commit -am "Release vX.Y.Z" && git tag vX.Y.Z && git push origin main --tags`
+  4. create a GitHub release for `vX.Y.Z` and attach the zip
+- end users install either from the release zip (extract `mimo-tts.koplugin`
+  into their plugins directory) or via `install.sh`
+
 ## Development & testing
 
 - pure Lua, no external Lua dependencies; `base64.lua` / `chunker.lua` /

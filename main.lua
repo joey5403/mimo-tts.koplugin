@@ -68,6 +68,7 @@ local PRESET_VOICES = {
 local MiMoTTS = WidgetContainer:extend{
     name = "mimo_tts",
     is_doc_only = false,
+    version = "1.0.0", -- release version (kept in sync with git tags vX.Y.Z)
 }
 
 -- Settings & instances -----------------------------------------------------
@@ -355,7 +356,22 @@ function MiMoTTS:getMenuItems()
                     self:clearCache()
                 end,
             },
+            {
+                text = _("About MiMo TTS"),
+                callback = function()
+                    self:showAbout()
+                end,
+            },
     }
+end
+
+function MiMoTTS:showAbout()
+    UIManager:show(InfoMessage:new{
+        text = T(_("MiMo TTS Read-aloud v%1"), MiMoTTS.version) .. "\n\n"
+            .. "https://github.com/joey5403/mimo-tts.koplugin\n"
+            .. "README.md (EN) / README.zh-CN.md (简体中文)",
+        width = math.floor(require("device").screen:getWidth() * 0.9),
+    })
 end
 
 -- 顶部菜单图标（tab） ---------------------------------------------------------

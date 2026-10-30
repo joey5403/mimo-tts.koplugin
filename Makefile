@@ -31,4 +31,13 @@ po-update:
 	    msgmerge --update --backup=none $$po $(POT) && echo "updated $$po"; \
 	done
 
-.PHONY: pot mo po-update
+check:
+	@for f in *.lua; do $(LUAJIT) -bl $$f >/dev/null || exit 1; done
+	@echo "syntax OK"
+
+release: check mo
+	sh tools/release.sh
+
+LUAJIT ?= luajit
+
+.PHONY: pot mo po-update check release
