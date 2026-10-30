@@ -68,7 +68,7 @@ local PRESET_VOICES = {
 local MiMoTTS = WidgetContainer:extend{
     name = "mimo_tts",
     is_doc_only = false,
-    version = "1.0.0", -- release version (kept in sync with git tags vX.Y.Z)
+    version = "1.0.2", -- release version (kept in sync with git tags vX.Y.Z)
 }
 
 -- Settings & instances -----------------------------------------------------

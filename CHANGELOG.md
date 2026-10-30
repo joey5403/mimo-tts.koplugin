@@ -5,6 +5,21 @@ All notable changes to this project are documented in this file.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) ·
 Versioning: [Semantic Versioning](https://semver.org/)
 
+## [1.0.2] - 2026-10-30
+
+### Added
+- release GitHub Action: pushing a `v*` tag builds and publishes the GitHub
+  release automatically (changelog section as notes, plugin zip attached)
+- local-only CI gate: `make ci` (syntax + catalogs + test battery) installed as
+  a git pre-commit hook via `make install-hooks`
+- the full test battery now lives in `tests/` (unit/integration suites, E2E
+  runner and driver, mock MiMo API, mock `libOpenSLES.so`) with
+  `make test` / `make e2e`
+
+### Fixed
+- release notes extraction is self-contained so tags that predate
+  `tools/release-notes.py` build correctly
+
 ## [1.0.0] - 2026-10-30
 
 Initial release.

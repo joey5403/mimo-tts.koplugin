@@ -30,6 +30,9 @@ echo "release: catalogs OK"
 HEAD_TAG=$(git describe --tags --exact-match 2>/dev/null || true)
 if [ -n "$HEAD_TAG" ] && [ "$HEAD_TAG" != "$TAG" ]; then
     echo "release: HEAD is tagged $HEAD_TAG but main.lua says $TAG" >&2
+    echo "release: fix: set version = \"${TAG#v}\" in main.lua (and a CHANGELOG.md" >&2
+    echo "release:       entry), commit, then re-tag: git tag -d $HEAD_TAG &&" >&2
+    echo "release:       git tag $TAG && git push -f origin $TAG" >&2
     exit 1
 fi
 if [ -z "$HEAD_TAG" ]; then
