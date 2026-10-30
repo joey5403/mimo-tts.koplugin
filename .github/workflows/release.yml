@@ -35,7 +35,7 @@ jobs:
           fi
 
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0          # tags are needed for the version check
           ref: ${{ steps.tag.outputs.tag }}
@@ -51,7 +51,23 @@ jobs:
         run: make release
 
       - name: Prepare release notes
-        run: python3 tools/release-notes.py "${{ steps.tag.outputs.tag }}" > /tmp/notes.md
+        # Self-contained: older tags may not carry tools/release-notes.py yet.
+        run: |
+          TAG="${{ steps.tag.outputs.tag }}"
+          if [ -f tools/release-notes.py ]; then
+            python3 tools/release-notes.py "$TAG"
+          else
+            python3 - "$TAG" <<'PY'
+          import re, sys
+          version = sys.argv[1].lstrip("v")
+          text = open("CHANGELOG.md", encoding="utf-8").read()
+          m = re.search(r"^## \[%s\][ \t]*-[ \t]*(\S+)[ \t]*\n(.*?)(?=^## \[|\Z)" % re.escape(version), text, re.M | re.S)
+          if not m:
+              sys.exit("CHANGELOG.md has no entry for version %s" % version)
+          print("Changes in v%s (%s)\n" % (version, m.group(1)))
+          print(m.group(2).strip())
+          PY
+          fi > /tmp/notes.md
 
       - name: Create GitHub release
         env:
