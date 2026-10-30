@@ -281,7 +281,8 @@ The playback manager picks the best backend automatically (force one via
   2. `make release` — syntax check, translation compile,
      `dist/mimo-tts.koplugin-vX.Y.Z.zip` (plus `dist/vX.Y.Z-notes.md`)
   3. `git commit -am "Release vX.Y.Z" && git tag vX.Y.Z && git push origin main --tags`
-- **CI releases**: pushing a `v*` tag runs
+  (commits are gated by the local pre-commit hook; CI never runs on GitHub)
+- **Release action**: pushing a `v*` tag runs
   [`.github/workflows/release.yml`](.github/workflows/release.yml), which
   re-runs the checks in a clean environment, rebuilds the zip and publishes a
   GitHub release with the changelog section as notes; it can also be triggered
@@ -292,12 +293,26 @@ The playback manager picks the best backend automatically (force one via
 
 ## Development & testing
 
-- pure Lua, no external Lua dependencies; `base64.lua` / `chunker.lua` /
-  `mimoapi.lua` / `player.lua` / `textprovider.lua` are independently testable
-- end-to-end testing: launch a real KOReader process with
-  `KO_HOME=<temp dir>`, drive the plugin through the complete listening flow
-  with a user patch, and validate every request shape (model / messages /
-  voice / streaming format) against a mock MiMo API implementing the official
-  contract; assertions cover automatic page turns, caching and all three
-  models
-- i18n tooling: `make pot` / `make mo` / `make po-update` (GNU gettext)
+**All CI runs locally — the only GitHub Action is the release workflow.**
+The local CI gate runs before every commit (git pre-commit hook):
+
+```sh
+make install-hooks   # once: installs the pre-commit hook
+make ci              # what the hook runs: check + mo + test
+```
+
+| Target | What it does | Needs |
+| --- | --- | --- |
+| `make check` | Lua syntax check of every file | luajit |
+| `make mo` / `pot` / `po-update` | translation compile / extract / refresh | GNU gettext |
+| `make test` | unit & integration battery (8 suites, ~2s) | KOReader install (`KOREADER_DIR`, default `/usr/lib/koreader`), python3, gcc |
+| `make e2e` | end-to-end battery, command **and** opensles playback scenarios | as above, plus a display (works with `SDL_VIDEODRIVER=dummy`) |
+| `make release` | checks + build `dist/mimo-tts.koplugin-vX.Y.Z.zip` | luajit, gettext, zip |
+
+The suites live in `tests/` and are self-contained: `tests/run.sh` sets up a
+scratch area in `/tmp/mimottest`, builds a mock `libOpenSLES.so` (same ABI as
+Android's), starts a contract-validating mock MiMo API and runs everything.
+`tests/run_e2e.sh` additionally launches a real KOReader process
+(`KO_HOME=<temp dir>`) and drives the plugin through the complete listening
+flow with the `tests/e2e-driver.lua` user patch; assertions cover automatic
+page turns, caching, the read-aloud underline and all three models.

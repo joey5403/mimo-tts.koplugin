@@ -228,7 +228,8 @@ Content-Type: application/json
   2. `make release` —— 语法检查、翻译编译、生成
      `dist/mimo-tts.koplugin-vX.Y.Z.zip`（及 `dist/vX.Y.Z-notes.md`）
   3. `git commit -am "Release vX.Y.Z" && git tag vX.Y.Z && git push origin main --tags`
-- **CI 自动发布**：推送 `v*` 标签会触发
+  （提交由本地 pre-commit 钩子把关；CI 不在 GitHub 上运行）
+- **Release Action**：推送 `v*` 标签会触发
   [`.github/workflows/release.yml`](.github/workflows/release.yml)——在干净环境
   重新跑检查、重建 zip、以 CHANGELOG 对应段落为说明自动创建 GitHub Release；
   也可在 Actions → Release → Run workflow 对已有标签手动触发，重复运行只刷新附件
@@ -236,9 +237,24 @@ Content-Type: application/json
 
 ## 开发与测试
 
-- 纯 Lua 实现，无外部 Lua 依赖；`base64.lua` / `chunker.lua` / `mimoapi.lua` /
-  `player.lua` / `textprovider.lua` 均可独立测试
-- 端到端测试（E2E）思路：用 `KO_HOME=<临时目录>` 启动真实 KOReader 进程，
-  通过 user patch 驱动插件完整跑一遍听书流程，mock MiMo API 按官方文档校验
-  请求形状（模型 / 消息 / 音色 / 流式格式），并断言自动翻页、缓存与三种模型请求
-- i18n 工具链：`make pot` / `make mo` / `make po-update`（GNU gettext）
+**所有 CI 都在本地运行——GitHub Action 只有 release 一个。**
+本地 CI 门禁在每次提交前执行（git pre-commit 钩子）：
+
+```sh
+make install-hooks   # 一次性：安装 pre-commit 钩子
+make ci              # 钩子执行的内容：check + mo + test
+```
+
+| 目标 | 作用 | 依赖 |
+| --- | --- | --- |
+| `make check` | 全部 Lua 文件语法检查 | luajit |
+| `make mo` / `pot` / `po-update` | 翻译编译 / 提取 / 刷新 | GNU gettext |
+| `make test` | 单元与集成测试（8 套，约 2 秒） | KOReader 安装（`KOREADER_DIR`，默认 `/usr/lib/koreader`）、python3、gcc |
+| `make e2e` | 端到端测试，command 与 opensles 两个播放场景 | 同上 + 显示环境（`SDL_VIDEODRIVER=dummy` 即可） |
+| `make release` | 检查 + 生成 `dist/mimo-tts.koplugin-vX.Y.Z.zip` | luajit、gettext、zip |
+
+测试套件在 `tests/` 且自包含：`tests/run.sh` 在 `/tmp/mimottest` 准备沙盒、
+编译 mock `libOpenSLES.so`（与安卓同 ABI）、启动按官方契约校验请求的 mock MiMo
+API 并运行全部测试；`tests/run_e2e.sh` 额外启动真实 KOReader 进程
+（`KO_HOME=<临时目录>`），用 `tests/e2e-driver.lua` user patch 驱动完整听书流程，
+断言自动翻页、缓存、朗读下划线与三种模型请求。

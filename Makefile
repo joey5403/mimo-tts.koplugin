@@ -35,9 +35,29 @@ check:
 	@for f in *.lua; do $(LUAJIT) -bl $$f >/dev/null || exit 1; done
 	@echo "syntax OK"
 
+# unit/integration battery (local; needs a KOReader install, see tests/run.sh)
+test:
+	sh tests/run.sh
+
+# end-to-end battery against a real KOReader process (slower; command and
+# opensles playback scenarios)
+e2e:
+	sh tests/run.sh >/dev/null
+	sh tests/run_e2e.sh dummy
+	SCENARIO=opensles sh tests/run_e2e.sh dummy
+
+# local CI gate, run by the pre-commit hook (make install-hooks)
+ci: check mo test
+	@echo "ci: all checks passed"
+
+install-hooks:
+	cp tools/pre-commit .git/hooks/pre-commit
+	chmod +x .git/hooks/pre-commit
+	@echo "pre-commit hook installed (runs 'make ci' before every commit)"
+
 release: check mo
 	sh tools/release.sh
 
 LUAJIT ?= luajit
 
-.PHONY: pot mo po-update check release
+.PHONY: pot mo po-update check test e2e ci install-hooks release
