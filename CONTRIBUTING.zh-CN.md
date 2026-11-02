@@ -111,4 +111,8 @@ make release-bump BUMP=patch   # 或 minor / major
 它会根据最新 tag 自动计算下一个版本号、打标签并推送；Release Action
 （[`.github/workflows/release.yml`](.github/workflows/release.yml)）随后构建
 （构建时注入版本号）、按 git 历史生成说明并发布 GitHub Release。
-也支持手动推送 `v*` 标签指定明确版本。
+
+也可以直接在 Action 里发（Actions → Release → Run workflow，选
+`patch`/`minor`/`major`）：一次运行内生成**版本号和标签**并发布。
+（`GITHUB_TOKEN` 推的标签不会触发第二次 workflow——GitHub 防递归规则——
+所以打标签与发布放在同一次运行内。）也支持手动推送 `v*` 标签指定明确版本。

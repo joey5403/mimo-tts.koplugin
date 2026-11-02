@@ -2,10 +2,11 @@ name: Release
 
 # Release flow: versions and changelogs are generated automatically.
 #
-#   * push a v* tag          -> build + publish the release for that tag
-#   * run with a `bump`      -> compute the next version (patch/minor/major),
-#                               create the tag; the tag push then runs the
-#                               build + publish job above
+#   * run with a `bump` (Actions -> Release -> Run workflow):
+#       compute the next version (patch/minor/major), create + push the tag,
+#       build and publish -- all in this run (a tag pushed with GITHUB_TOKEN
+#       would not trigger a second run, by GitHub's anti-recursion rule)
+#   * push a v* tag: build + publish for that explicit version
 #
 # The artifact carries the version stamped into mimo_version.lua at build
 # time (single source of truth: git tags); notes are generated from the git
@@ -26,55 +27,49 @@ permissions:
   contents: write
 
 jobs:
-  # generate version + tag (dispatch only); the pushed tag triggers `release`
-  cut-release:
-    if: github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v5
-        with:
-          fetch-depth: 0          # tags are needed for the version calculation
-
-      - name: Create version tag
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          V=$(sh tools/next-version.sh "${{ inputs.bump }}")
-          git tag -a "v$V" -m "MiMo TTS Read-aloud v$V"
-          git push origin "v$V"
-          echo "cut-release: tagged v$V -- the release job will publish it"
-
   release:
-    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v5
         with:
-          fetch-depth: 0          # tags are needed for the changelog ranges
-          ref: ${{ github.ref_name }}
+          fetch-depth: 0          # tags are needed for versions and changelog ranges
 
       - name: Install dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends luajit gettext zip
 
+      - name: Resolve version (generate the tag on dispatch)
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            TAG="v$(sh tools/next-version.sh "${{ inputs.bump }}")"
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git tag -a "$TAG" -m "MiMo TTS Read-aloud $TAG"
+            git push origin "$TAG"
+            echo "release: generated tag $TAG"
+          else
+            TAG="${GITHUB_REF_NAME}"
+          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+
       - name: Build release zip
-        # tools/release.sh: stamps mimo_version.lua from the tag, runs the
-        # syntax/catalog checks, generates notes and builds dist/*.zip
-        run: make release
+        # tools/release.sh: stamps mimo_version.lua from the version, runs the
+        # syntax/catalog checks and builds dist/*.zip
+        run: make release RELEASE_ARGS="--version ${{ steps.version.outputs.tag }}"
 
       - name: Prepare release notes
         run: |
-          python3 tools/release-notes.py "${GITHUB_REF_NAME}" > /tmp/notes.md 2>/dev/null \
+          python3 tools/release-notes.py "${{ steps.version.outputs.tag }}" > /tmp/notes.md 2>/dev/null \
             || echo "See the commit history for changes." > /tmp/notes.md
 
       - name: Create GitHub release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          TAG="${GITHUB_REF_NAME}"
+          TAG="${{ steps.version.outputs.tag }}"
           TITLE="MiMo TTS Read-aloud $TAG"
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release upload "$TAG" dist/*.zip --clobber

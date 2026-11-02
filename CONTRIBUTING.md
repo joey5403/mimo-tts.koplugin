@@ -117,5 +117,11 @@ make release-bump BUMP=patch   # or minor / major
 This computes the next version from the latest tag, tags it and pushes; the
 release action ([`.github/workflows/release.yml`](.github/workflows/release.yml))
 then builds the zip (version stamped at build time) and publishes the GitHub
-release with notes generated from the git history. Manual `v*` tags are
-supported too for explicit versions.
+release with notes generated from the git history.
+
+Alternatively run the action itself (Actions → Release → Run workflow, pick
+`patch`/`minor`/`major`): it generates the version **and the tag** and
+publishes in a single run. (A tag pushed with `GITHUB_TOKEN` would not
+trigger a second workflow run — GitHub's anti-recursion rule — which is why
+the flow does everything in one run.) Manual `v*` tags are supported too for
+explicit versions.
