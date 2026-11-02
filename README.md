@@ -285,6 +285,11 @@ to keep in sync by hand:
   - `make release-bump BUMP=patch|minor|major` — computes the next version,
     creates the tag and pushes it; the release action then publishes
     <https://github.com/joey5403/mimo-tts.koplugin/releases>
+  - or run the release action itself (Actions → Release → Run workflow, pick
+    `patch`/`minor`/`major`): it generates the version **and the tag** inside
+    the run — note that a tag pushed with `GITHUB_TOKEN` would not trigger a
+    second workflow run (GitHub's anti-recursion rule), which is why tag
+    creation and publishing happen in one run
   - or push a `v*` tag manually for an explicit version
   - `make release` builds `dist/mimo-tts.koplugin-vX.Y.Z.zip` locally for
     inspection (`make release RELEASE_ARGS="--bump patch"` for a dry run)

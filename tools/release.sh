@@ -15,7 +15,7 @@ VERSION=""
 BUMP=""
 while [ $# -gt 0 ]; do
     case "$1" in
-        --version) VERSION=$2; shift 2 ;;
+        --version) VERSION=${2#v}; shift 2 ;;
         --bump)    BUMP=$2; shift 2 ;;
         *) echo "release: unknown argument $1" >&2; exit 1 ;;
     esac

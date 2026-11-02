@@ -230,6 +230,10 @@ Content-Type: application/json
   - `make release-bump BUMP=patch|minor|major` —— 自动计算下一个版本号、
     打标签并推送；Release Action 随之发布到
     <https://github.com/joey5403/mimo-tts.koplugin/releases>
+  - 或直接在 Action 里发（Actions → Release → Run workflow，选
+    `patch`/`minor`/`major`）：一次运行内自动生成**版本号和标签**并发布——
+    注意 `GITHUB_TOKEN` 推的标签不会触发第二次 workflow（GitHub 防递归规则），
+    所以打标签与发布必须在同一次运行内完成
   - 或手动推送 `v*` 标签指定明确版本
   - `make release` 本地构建 `dist/mimo-tts.koplugin-vX.Y.Z.zip` 供检查
 - **Release Action**：推送 `v*` 标签（或带 bump 手动触发）会运行
