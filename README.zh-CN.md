@@ -39,7 +39,8 @@
 - **流式合成**：可选 `stream=true` + `pcm16`（24kHz 单声道），长文本更稳
 - **句间无缝**：播放当前句时预合成后续句子（前瞻 3 句、跨页预热）
 - **语音缓存**：音频按内容哈希缓存，重听零流量
-- **全设备播放**：安卓原生 OpenSL ES 后端 + 命令行播放器自动检测
+- **全设备播放**：安卓原生 OpenSL ES 后端、Kindle 捆绑的 `kindle-gst-play`
+  （经亚马逊私有 `mixersink` 管道输出到蓝牙耳机）+ 命令行播放器自动检测
   （mpv / ffplay / mpg123 / madplay / sox `play` / aplay / paplay / afplay），可自定义
 - **顶部菜单图标**：阅读页顶部菜单栏新增 🔊 图标，点击直接打开插件菜单（可在菜单里开关）
 - **手势 / 快捷键 / 调度器**：所有操作都注册为 Dispatcher 动作，可绑定手势或快捷键
@@ -101,7 +102,7 @@ speed/pace/slow/fast/早口”等关键词）时不覆盖。）
 
 **播放器倍速支持**：mpv（`--speed`，不变调）、ffplay（`atempo`，不变调）、sox `play`
 （`tempo`，不变调）、afplay（`-r`）、OpenSL ES/安卓（按倍率声明采样率，**音高随之
-变化**）；其他命令行播放器不支持，会明确报错。自定义播放器命令请自行写入倍速
+变化**）；其他后端（含捆绑的 Kindle `kindle-gst-play`）不支持，会明确报错。自定义播放器命令请自行写入倍速
 参数。播放器倍速只影响播放，不影响合成与缓存。
 
 ### 请求示例（与官方文档一致）
@@ -206,7 +207,7 @@ Content-Type: application/json
 | --- | --- | --- | --- |
 | 1 | 自定义命令 `player_cmd` | 任意 | 显式配置的命令行播放器，最高优先级 |
 | 2 | **OpenSL ES（LuaJIT FFI）** | **所有 Android** | 直接调用 NDK 公共库 `libOpenSLES.so`（Android 2.3+ 自带）：无需外部二进制、无需改 KOReader、无需 root |
-| 3 | 命令行播放器自动检测 | 桌面 Linux / Kobo / Kindle / PocketBook / reMarkable / macOS | `mpv → ffplay → mpg123 → madplay → ogg123 → sox play → aplay → paplay → afplay` |
+| 3 | 命令行播放器自动检测 | 桌面 Linux / Kobo / Kindle / PocketBook / reMarkable / macOS | `kindle-gst-play (捆绑) → mpv → ffplay → mpg123 → madplay → ogg123 → sox play → aplay → paplay → afplay` |
 | 4 | 明确报错 + 播放器诊断 | — | 菜单“播放器诊断…”显示当前后端、支持格式、可用播放器 |
 
 - **格式协商**：后端声明支持的音频格式，合成输出自动适配——例如安卓 OpenSL 后端只接受
@@ -223,7 +224,10 @@ Content-Type: application/json
 - **音频输出**：
   - **Android**：开箱即用（OpenSL ES 原生后端）
   - **桌面 Linux / macOS**：通常已有 mpv/ffplay；没有则装一个即可
-  - **Kobo / Kindle / PocketBook / reMarkable**：需要设备上有任一受支持的命令行播放器
+  - **Kindle**：捆绑的 `kindle-gst-play` 经亚马逊私有 `mixersink` 管道输出到蓝牙耳机
+    ——先在 Kindle 系统设置里配对好蓝牙耳机（Kindle Basic 2022 已验证；各机型
+    状态见 [docs/kindle.zh-CN.md](docs/kindle.zh-CN.md)）
+  - **Kobo / PocketBook / reMarkable**：需要设备上有任一受支持的命令行播放器
     （蓝牙耳机需系统侧配对好）；也可用 `player_cmd` 自己指定
   - 全部不满足时，菜单“播放器诊断…”会说明缺什么；没有任何音频硬件的设备
     （如无扬声器的 Kobo）自然无法出声
@@ -241,7 +245,7 @@ Content-Type: application/json
 | “合成失败：无法连接” | 检查网络、API 地址 |
 | “音色设计模式…需要填写音色描述” | 在“音色与风格设置”里填写音色描述 |
 | “找不到音色样本文件” | 在“音色与风格设置”里填正确的 mp3/wav 路径 |
-| “找不到音频播放器” | 安装 mpv 等，或在“播放与分段设置”里指定播放器命令 |
+| “找不到音频播放器” | 安装 mpv 等，或在“播放与分段设置”里指定播放器命令；Kindle 上捆绑助手会自动识别——见 [docs/kindle.zh-CN.md](docs/kindle.zh-CN.md) |
 | “没有提取到可朗读的文字” | 该页可能是图片/扫描版（PDF 需要文字层），可长按选中文字后“朗读选中文字” |
 | 播放没有声音 | 检查设备音量/蓝牙；先用“测试朗读”验证 |
 
