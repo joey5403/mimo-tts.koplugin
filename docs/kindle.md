@@ -1,5 +1,7 @@
 # Kindle support status & roadmap
 
+**English** | [简体中文](kindle.zh-CN.md)
+
 Where the plugin stands on Kindle's KOReader, what is missing, and the plan
 for getting audio out of a jailbroken Kindle.
 
