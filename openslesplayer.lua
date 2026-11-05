@@ -17,6 +17,10 @@ OpenSL ES notes:
 local ffi = require("ffi")
 local logger = require("logger")
 
+-- The interface structs below are vtables: every member order must match the
+-- NDK headers (SLES/OpenSLES.h, SLES/OpenSLESAndroid.h) slot for slot, or the
+-- wrong function gets called and the process dies.  Keep in sync with
+-- tests/mocksl/mock_opensles.c, which mirrors the same real layouts.
 ffi.cdef([[
 typedef uint32_t SLresult;
 typedef uint32_t SLuint32;
@@ -25,38 +29,66 @@ typedef uint32_t SLboolean;
 
 struct SLInterfaceID_;
 typedef const struct SLInterfaceID_ *SLInterfaceID;
-extern const struct SLInterfaceID_ SL_IID_ENGINE;
-extern const struct SLInterfaceID_ SL_IID_PLAY;
-extern const struct SLInterfaceID_ SL_IID_ANDROIDSIMPLEBUFFERQUEUE;
+/* In libOpenSLES.so each SL_IID_* is a *pointer variable* holding the address
+   of the UUID struct (const SLInterfaceID SL_IID_ENGINE = &...), not the
+   struct itself. */
+extern const SLInterfaceID SL_IID_ENGINE;
+extern const SLInterfaceID SL_IID_PLAY;
+extern const SLInterfaceID SL_IID_ANDROIDSIMPLEBUFFERQUEUE;
 
+/* OpenSLES.h: Realize, Resume, GetState, GetInterface, RegisterCallback,
+   AbortAsyncOperation, Destroy, SetPriority, GetPriority,
+   SetLossOfControlInterfaces */
 typedef struct SLObjectItf_ **SLObjectItf;
 struct SLObjectItf_ {
     SLresult (*Realize)(SLObjectItf self, SLboolean async);
-    SLresult (*GetInterface)(SLObjectItf self, const struct SLInterfaceID_ *iid, void *out);
-    SLresult (*Destroy)(SLObjectItf self);
-    void *pad[5];
+    void *Resume;
+    void *GetState;
+    SLresult (*GetInterface)(SLObjectItf self, const SLInterfaceID iid, void *out);
+    void *RegisterCallback;
+    void *AbortAsyncOperation;
+    void (*Destroy)(SLObjectItf self);
+    void *SetPriority;
+    void *GetPriority;
+    void *SetLossOfControlInterfaces;
 };
 
+/* OpenSLES.h: CreateLEDDevice, CreateVibraDevice, CreateAudioPlayer,
+   CreateAudioRecorder, CreateMidiPlayer, CreateListener, Create3DGroup,
+   CreateOutputMix, CreateMetadataExtractor, CreateExtensionObject,
+   QueryNumSupportedInterfaces, QuerySupportedInterfaces,
+   QueryNumSupportedExtensions, QuerySupportedExtension, IsExtensionSupported */
 typedef struct SLEngineItf_ **SLEngineItf;
 struct SLEngineItf_ {
     void *CreateLEDDevice;
     void *CreateVibraDevice;
-    SLresult (*CreateOutputMix)(SLEngineItf self, SLObjectItf *mix, SLuint32 n,
-                                const void *ids, const void *req);
-    void *pad1[4];
     SLresult (*CreateAudioPlayer)(SLEngineItf self, SLObjectItf *player,
                                   void *audioSrc, void *audioSnk, SLuint32 n,
-                                  const void *ids, const void *req);
-    void *pad2[5];
+                                  const SLInterfaceID *ids, const SLboolean *req);
+    void *CreateAudioRecorder;
+    void *CreateMidiPlayer;
+    void *CreateListener;
+    void *Create3DGroup;
+    SLresult (*CreateOutputMix)(SLEngineItf self, SLObjectItf *mix, SLuint32 n,
+                                const SLInterfaceID *ids, const SLboolean *req);
+    void *CreateMetadataExtractor;
+    void *CreateExtensionObject;
+    void *QueryNumSupportedInterfaces;
+    void *QuerySupportedInterfaces;
+    void *QueryNumSupportedExtensions;
+    void *QuerySupportedExtension;
+    void *IsExtensionSupported;
 };
 
+/* OpenSLES.h: SetPlayState, GetPlayState, then 10 more (never called here) */
 typedef struct SLPlayItf_ **SLPlayItf;
 struct SLPlayItf_ {
     SLresult (*SetPlayState)(SLPlayItf self, SLuint32 state);
     SLresult (*GetPlayState)(SLPlayItf self, SLuint32 *state);
-    void *pad[11];
+    void *pad[10];
 };
 
+/* OpenSLESAndroid.h: Enqueue, Clear, GetState, RegisterCallback */
 typedef struct SLAndroidSimpleBufferQueueState_ {
     SLuint32 count;
     SLuint32 index;
@@ -66,7 +98,7 @@ struct SLAndroidSimpleBufferQueueItf_ {
     SLresult (*Enqueue)(SLAndroidSimpleBufferQueueItf self, const void *buf, SLuint32 size);
     SLresult (*Clear)(SLAndroidSimpleBufferQueueItf self);
     SLresult (*GetState)(SLAndroidSimpleBufferQueueItf self, SLAndroidSimpleBufferQueueState *st);
-    void *pad[1];
+    void *RegisterCallback;
 };
 
 struct SLDataLocator_AndroidSimpleBufferQueue_ { SLuint32 locatorType; SLuint32 numBuffers; };
@@ -199,15 +231,24 @@ function OpenSLESPlayer:_ensureCore()
         return nil, "slCreateEngine 失败"
     end
     local engine = engine_slot[0]
-    engine[0][0].Realize(engine, 0)
+    if engine[0][0].Realize(engine, 0) ~= 0 then
+        return nil, "engine Realize 失败"
+    end
     local eng_itf_slot = ffi.new("SLEngineItf[1]")
-    engine[0][0].GetInterface(engine, lib.SL_IID_ENGINE, eng_itf_slot)
+    if engine[0][0].GetInterface(engine, lib.SL_IID_ENGINE, eng_itf_slot) ~= 0
+            or eng_itf_slot[0] == nil then
+        return nil, "GetInterface(SL_IID_ENGINE) 失败"
+    end
     local engine_itf = eng_itf_slot[0]
 
     local mix_slot = ffi.new("SLObjectItf[1]")
-    engine_itf[0][0].CreateOutputMix(engine_itf, mix_slot, 0, nil, nil)
+    if engine_itf[0][0].CreateOutputMix(engine_itf, mix_slot, 0, nil, nil) ~= 0 then
+        return nil, "CreateOutputMix 失败"
+    end
     local mix = mix_slot[0]
-    mix[0][0].Realize(mix, 0)
+    if mix[0][0].Realize(mix, 0) ~= 0 then
+        return nil, "output mix Realize 失败"
+    end
 
     self._engine, self._engine_itf, self._mix = engine, engine_itf, mix
     return true
@@ -245,12 +286,20 @@ function OpenSLESPlayer:_ensurePlayer(fmt)
         return nil, "CreateAudioPlayer 失败"
     end
     local player = player_slot[0]
-    player[0][0].Realize(player, 0)
+    if player[0][0].Realize(player, 0) ~= 0 then
+        return nil, "audio player Realize 失败"
+    end
 
     local play_slot = ffi.new("SLPlayItf[1]")
-    player[0][0].GetInterface(player, lib.SL_IID_PLAY, play_slot)
+    if player[0][0].GetInterface(player, lib.SL_IID_PLAY, play_slot) ~= 0
+            or play_slot[0] == nil then
+        return nil, "GetInterface(SL_IID_PLAY) 失败"
+    end
     local bufq_slot = ffi.new("SLAndroidSimpleBufferQueueItf[1]")
-    player[0][0].GetInterface(player, lib.SL_IID_ANDROIDSIMPLEBUFFERQUEUE, bufq_slot)
+    if player[0][0].GetInterface(player, lib.SL_IID_ANDROIDSIMPLEBUFFERQUEUE, bufq_slot) ~= 0
+            or bufq_slot[0] == nil then
+        return nil, "GetInterface(SL_IID_ANDROIDSIMPLEBUFFERQUEUE) 失败"
+    end
 
     self._player, self._play, self._bufq = player, play_slot[0], bufq_slot[0]
     self._fmt = fmt
@@ -284,8 +333,12 @@ function OpenSLESPlayer:play(file_path)
     self._pinned = wav.pcm
     self._play[0][0].SetPlayState(self._play, SL_PLAYSTATE_STOPPED)
     self._bufq[0][0].Clear(self._bufq)
-    self._bufq[0][0].Enqueue(self._bufq, wav.pcm, #wav.pcm)
-    self._play[0][0].SetPlayState(self._play, SL_PLAYSTATE_PLAYING)
+    if self._bufq[0][0].Enqueue(self._bufq, wav.pcm, #wav.pcm) ~= 0 then
+        return nil, "Enqueue 失败"
+    end
+    if self._play[0][0].SetPlayState(self._play, SL_PLAYSTATE_PLAYING) ~= 0 then
+        return nil, "SetPlayState(PLAYING) 失败"
+    end
     logger.dbg("OpenSLES: playing", file_path, #wav.pcm, "bytes of PCM")
     return true
 end
