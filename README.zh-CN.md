@@ -10,6 +10,16 @@
 功能实现遵循官方文档：
 <https://mimo.mi.com/docs/zh-CN/quick-start/usage-guide/audio/speech-synthesis-v2.5>
 
+## 预览
+
+| 主菜单 | 设置 |
+| :---: | :---: |
+| <img src="asset/chinese/menu-1.jpg" width="320" alt="插件菜单：连续听书（自动翻页）、朗读当前页、朗读选中文字、下一段/上一段、停止朗读、测试朗读、播放器诊断、选择预置音色、流式合成"> | <img src="asset/chinese/menu-2.jpg" width="320" alt="插件设置：顶部菜单图标、播放时给文字加下划线、接口与模型设置、音色与风格设置、播放与分段设置、清除语音缓存、关于 MiMo TTS"> |
+
+**演示录屏**（含音轨，37 秒，英文界面）——正在朗读的句子带下划线，读完立即移到下一句：
+[![演示：划线跟读](asset/english/video-poster.jpg)
+](asset/english/video.mp4)
+
 ## 功能
 
 - **连续听书**：从当前页开始自动翻页，逐句朗读直到书末
