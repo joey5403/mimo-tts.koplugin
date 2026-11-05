@@ -315,6 +315,24 @@ function Player:diagnostics()
     elseif backend.backend_name == "opensles" then
         lines[#lines + 1] = _("OpenSL ES：所有 Android 设备自带，无需安装")
     end
+    -- Kindle: the firmware ships no command line players and modern models
+    -- only output audio through the firmware Bluetooth stack, so surface
+    -- what is actually there for debugging the playback path.
+    local ok_dev, Device = pcall(require, "device")
+    if ok_dev and Device.isKindle and Device:isKindle() then
+        local lfs = require("libs/libkoreader-lfs")
+        local function exists(path)
+            return lfs.attributes(path, "mode") ~= nil
+        end
+        lines[#lines + 1] = _("Kindle 音频环境：")
+        lines[#lines + 1] = string.format("ALSA /dev/snd: %s | OSS /dev/dsp: %s | %s",
+            exists("/dev/snd") and "✓" or "✗",
+            exists("/dev/dsp") and "✓" or "✗",
+            exists("/sys/class/bluetooth") and _("蓝牙硬件 ✓") or _("蓝牙硬件 ✗"))
+        if shell_ok("pidof btService >/dev/null 2>&1") then
+            lines[#lines + 1] = _("蓝牙服务 btService 运行中（固件独占；用户态出声待真机验证）")
+        end
+    end
     return table.concat(lines, "\n")
 end
 
