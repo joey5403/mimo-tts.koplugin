@@ -30,6 +30,23 @@ typedef uint32_t SLboolean;
 #define SL_RESULT_PARAMETER_INVALID 1
 #define SL_BOOLEAN_TRUE 1
 
+/* constant values straight from SLES/OpenSLES.h + SLES/OpenSLESAndroid.h;
+   validated in eng_create_* like wilhelm's checkDataSource/checkDataSink,
+   so a wrong constant fails the battery instead of crashing a device */
+#define SL_DATAFORMAT_MIME   1u
+#define SL_DATAFORMAT_PCM    2u
+#define SL_DATALOCATOR_OUTPUTMIX 4u
+#define SL_DATALOCATOR_ANDROIDSIMPLEBUFFERQUEUE 0x800007BDu
+#define SL_BYTEORDER_LITTLEENDIAN 2u
+
+struct SLDataSource_ { void *pLocator; void *pFormat; };
+struct SLDataLocator_BufQ_ { SLuint32 locatorType; SLuint32 numBuffers; };
+struct SLDataLocator_OutputMix_ { SLuint32 locatorType; void *outputMix; };
+struct SLDataFormat_PCM_ {
+    SLuint32 formatType, numChannels, samplesPerSec, bitsPerSample;
+    SLuint32 containerSize, channelMask, endianness;
+};
+
 /* ---- interface IDs: exported as pointer variables (real-lib shape) ---- */
 struct SLInterfaceID_ { int dummy[4]; };
 typedef const struct SLInterfaceID_ *SLInterfaceID;
@@ -195,8 +212,27 @@ static SLresult eng_create_output_mix(SLEngineItf self, SLObjectItf *mix, SLuint
 }
 static SLresult eng_create_audio_player(SLEngineItf self, SLObjectItf *player, void *src, void *snk,
                                         SLuint32 n, const SLInterfaceID *ids, const SLboolean *req) {
-    (void)self; (void)snk; (void)n; (void)ids; (void)req;
-    if (!src || !player) return SL_RESULT_PARAMETER_INVALID;
+    (void)self; (void)n; (void)ids; (void)req;
+    if (!src || !snk || !player) return SL_RESULT_PARAMETER_INVALID;
+    /* checkDataSource: the source must be a simple buffer queue of PCM */
+    const struct SLDataSource_ *s = (const struct SLDataSource_ *)src;
+    const struct SLDataLocator_BufQ_ *loc = (const struct SLDataLocator_BufQ_ *)s->pLocator;
+    const struct SLDataFormat_PCM_ *fmt = (const struct SLDataFormat_PCM_ *)s->pFormat;
+    if (!loc || loc->locatorType != SL_DATALOCATOR_ANDROIDSIMPLEBUFFERQUEUE)
+        return SL_RESULT_PARAMETER_INVALID;
+    if (!fmt || fmt->formatType != SL_DATAFORMAT_PCM)
+        return SL_RESULT_PARAMETER_INVALID;
+    if (fmt->numChannels < 1 || fmt->numChannels > 2 || fmt->bitsPerSample != 16 ||
+        fmt->containerSize != fmt->bitsPerSample ||
+        fmt->samplesPerSec < 8000000u || fmt->samplesPerSec > 192000000u ||
+        fmt->endianness != SL_BYTEORDER_LITTLEENDIAN)
+        return SL_RESULT_PARAMETER_INVALID;
+    /* checkDataSink: the sink must be an output mix */
+    const struct SLDataSource_ *snk_s = (const struct SLDataSource_ *)snk;
+    const struct SLDataLocator_OutputMix_ *snk_loc =
+        (const struct SLDataLocator_OutputMix_ *)snk_s->pLocator;
+    if (!snk_loc || snk_loc->locatorType != SL_DATALOCATOR_OUTPUTMIX)
+        return SL_RESULT_PARAMETER_INVALID;
     *player = player_obj; return SL_RESULT_SUCCESS;
 }
 

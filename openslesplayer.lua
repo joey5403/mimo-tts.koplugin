@@ -119,12 +119,14 @@ SLresult slCreateEngine(SLObjectItf *engine, SLuint32 numOptions, const void *op
                         SLuint32 numInterfaces, const void *ids, const void *req);
 ]])
 
--- constants (SLES/OpenSLES.h, SLES/OpenSLESAndroid.h)
+-- constants (SLES/OpenSLES.h, SLES/OpenSLESAndroid.h) -- values straight
+-- from the headers: SL_DATAFORMAT_PCM is 2 (1 is SL_DATAFORMAT_MIME) and
+-- SL_DATALOCATOR_OUTPUTMIX is 4 (3 is SL_DATALOCATOR_IODEVICE)
 local SL_BOOLEAN_TRUE = 1
 local SL_PLAYSTATE_STOPPED = 1
 local SL_PLAYSTATE_PLAYING = 3
-local SL_DATAFORMAT_PCM = 1
-local SL_DATALOCATOR_OUTPUTMIX = 3
+local SL_DATAFORMAT_PCM = 2
+local SL_DATALOCATOR_OUTPUTMIX = 4
 local SL_DATALOCATOR_ANDROIDSIMPLEBUFFERQUEUE = 0x800007BD
 local SL_BYTEORDER_LITTLEENDIAN = 2
 local SL_SPEAKER_FRONT_LEFT = 1
