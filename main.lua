@@ -40,6 +40,7 @@ local DEFAULTS = {
     voice         = "mimo_default",
     audio_format  = "mp3",
     speed         = 1.0,
+    player_speed  = 1.0,
     style_prompt  = "",
     style_tag     = "",
     voice_description = "",
@@ -126,6 +127,7 @@ function MiMoTTS:_setupPlayback()
         cache_dir = self.cache_dir,
         forced_cmd = self.settings.player_cmd,
         backend_name = self.settings.player_backend,
+        speed = self.settings.player_speed,
     }
     self.audio_format = self.player:negotiateFormat(self.settings.audio_format)
     if self.audio_format ~= (self.settings.audio_format or "mp3") then
@@ -951,7 +953,8 @@ function MiMoTTS:showPlaybackSettings()
     dialog = MultiInputDialog:new{
         title = _("MiMo TTS playback & segmentation settings"),
         fields = {
-            { description = _("Speed (1.0 = normal)"), input_type = "number", text = tostring(s.speed), hint = "1.0" },
+            { description = _("AI speed (synthesis, 1.0 = normal)"), input_type = "number", text = tostring(s.speed), hint = "1.0" },
+            { description = _("Player speed (playback, 1.0 = normal)"), input_type = "number", text = tostring(s.player_speed or 1.0), hint = "1.0" },
             { description = _("Max segment length (longer ones are split)"), input_type = "number", text = tostring(s.chunk_size), hint = "300" },
             { description = _("Player command (empty = auto-detect)"), text = s.player_cmd, hint = "mpv --no-video" },
             { description = _("Playback backend (auto/command/opensles)"), text = s.player_backend, hint = "auto" },
@@ -973,9 +976,13 @@ function MiMoTTS:showPlaybackSettings()
                         if s.speed <= 0 then
                             s.speed = 1.0
                         end
-                        s.chunk_size = math.floor(tonumber(fields[2]) or 300)
-                        s.player_cmd = tostring(fields[3] or ""):gsub("^%s+", ""):gsub("%s+$", "")
-                        local backend = tostring(fields[4] or ""):gsub("^%s+", ""):gsub("%s+$", ""):lower()
+                        s.player_speed = tonumber(fields[2]) or 1.0
+                        if s.player_speed < 0.25 or s.player_speed > 4 then
+                            s.player_speed = 1.0
+                        end
+                        s.chunk_size = math.floor(tonumber(fields[3]) or 300)
+                        s.player_cmd = tostring(fields[4] or ""):gsub("^%s+", ""):gsub("%s+$", "")
+                        local backend = tostring(fields[5] or ""):gsub("^%s+", ""):gsub("%s+$", ""):lower()
                         s.player_backend = (backend == "command" or backend == "opensles") and backend or "auto"
                         self:_applySettings()
                         UIManager:close(dialog)

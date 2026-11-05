@@ -82,6 +82,25 @@ end
 
 -- Request building ---------------------------------------------------------
 
+--- Map a numeric speed to the descriptive phrasing the official MiMo docs
+--- use ("语速稍快" / "语速偏快" / "语速极慢" ...).  The model is trained on
+--- these natural language phrases and ignores numeric multipliers
+--- ("语速约为正常的 2 倍"), which appear nowhere in the docs.
+function MiMoAPI:speedPhrase(speed)
+    speed = tonumber(speed)
+    if not speed or speed <= 0 or speed == 1 then
+        return nil
+    end
+    if speed < 1 then
+        if speed <= 0.65 then return "语速极慢" end
+        if speed <= 0.85 then return "语速缓慢" end
+        return "语速稍慢"
+    end
+    if speed <= 1.25 then return "语速稍快" end
+    if speed <= 1.75 then return "语速偏快" end
+    return "语速极快"
+end
+
 --- Build the natural language instruction (user message content).
 function MiMoAPI:buildStyleInstruction(speed)
     local parts = {}
@@ -89,9 +108,9 @@ function MiMoAPI:buildStyleInstruction(speed)
     if style ~= "" then
         parts[#parts + 1] = style
     end
-    speed = tonumber(speed)
-    if speed and speed > 0 and speed ~= 1 then
-        parts[#parts + 1] = string.format("语速约为正常的 %g 倍。", speed)
+    local phrase = self:speedPhrase(speed)
+    if phrase then
+        parts[#parts + 1] = phrase .. "。"
     end
     return table.concat(parts, " ")
 end
@@ -139,10 +158,17 @@ function MiMoAPI:buildPayload(text, speed, streaming)
     local mode = self:getMode()
     local messages = {}
     if mode == "voicedesign" then
-        -- user message = voice design description (required by the API)
+        -- user message = voice design description (required by the API); the
+        -- docs list 语速/节奏 as a description dimension, so the AI speed goes
+        -- there -- unless the description already sets a pace (never
+        -- contradict an explicit description)
         local desc = (self.voice_description or ""):gsub("^%s+", ""):gsub("%s+$", "")
         if desc == "" then
             return nil, "音色设计模式（mimo-v2.5-tts-voicedesign）需要填写音色描述"
+        end
+        local phrase = self:speedPhrase(speed)
+        if phrase and not desc:find("语速") then
+            desc = desc .. "，" .. phrase
         end
         messages[#messages + 1] = { role = "user", content = desc }
     else

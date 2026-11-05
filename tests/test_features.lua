@@ -30,9 +30,33 @@ check(MiMoAPI:new{ style_tag = "  磁性  " }:applyStyleTag("你好。") == "(�
 
 --------------------------------------------------------------- style instruction
 local inst = MiMoAPI:new{ style_prompt = "温柔的旁白" }:buildStyleInstruction(1.25)
-check(inst:find("温柔的旁白") ~= nil and inst:find("1.25 倍") ~= nil, "style+speed instruction: " .. inst)
+check(inst:find("温柔的旁白") ~= nil and inst:find("语速稍快") ~= nil, "style+speed instruction: " .. inst)
 check(MiMoAPI:new{ style_prompt = "" }:buildStyleInstruction(1.0) == "", "no instruction at speed 1.0")
 check(MiMoAPI:new{ style_prompt = "" }:buildStyleInstruction(nil) == "", "no instruction without speed")
+
+--------------------------------------------------------------- speed phrase mapping
+local ph = MiMoAPI:new{}
+check(ph:speedPhrase(2.0) == "语速极快", "2.0 -> 语速极快")
+check(ph:speedPhrase(1.5) == "语速偏快", "1.5 -> 语速偏快")
+check(ph:speedPhrase(1.25) == "语速稍快", "1.25 -> 语速稍快")
+check(ph:speedPhrase(1.0) == nil, "1.0 -> no phrase")
+check(ph:speedPhrase(0.9) == "语速稍慢", "0.9 -> 语速稍慢")
+check(ph:speedPhrase(0.8) == "语速缓慢", "0.8 -> 语速缓慢")
+check(ph:speedPhrase(0.5) == "语速极慢", "0.5 -> 语速极慢")
+check(ph:speedPhrase(nil) == nil and ph:speedPhrase(0) == nil, "invalid speed -> no phrase")
+check(not tostring(ph:speedPhrase(2.0)):find("倍"), "phrase is descriptive, not numeric")
+
+--------------------------------------------------------------- voicedesign speed
+local vd = MiMoAPI:new{ model = "mimo-v2.5-tts-voicedesign", audio_format = "mp3",
+    voice_description = "丝滑醇厚的中年男声" }
+local pvd = vd:buildPayload("正文", 2.0)
+check(pvd.messages[1].role == "user" and pvd.messages[1].content:find("语速极快") ~= nil,
+    "voicedesign carries speed in description: " .. tostring(pvd.messages[1].content))
+local vd2 = MiMoAPI:new{ model = "mimo-v2.5-tts-voicedesign", audio_format = "mp3",
+    voice_description = "语速缓慢沉稳的老者" }
+local pvd2 = vd2:buildPayload("正文", 2.0)
+check(pvd2.messages[1].content:find("语速极快") == nil and pvd2.messages[1].content == "语速缓慢沉稳的老者",
+    "voicedesign never contradicts a described pace")
 
 --------------------------------------------------------------- payload modes
 local preset = MiMoAPI:new{ model = "mimo-v2.5-tts", voice = "冰糖", audio_format = "mp3", style_tag = "温柔" }

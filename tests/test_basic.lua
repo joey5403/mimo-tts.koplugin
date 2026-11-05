@@ -82,7 +82,7 @@ check(payload.model == "mimo-v2.5-tts", "payload model")
 check(payload.audio.format == "mp3" and payload.audio.voice == "mimo_default", "payload audio block")
 check(payload.messages[#payload.messages].role == "assistant", "payload assistant message")
 check(payload.messages[#payload.messages].content == "你好世界", "payload text")
-check(payload.messages[1].content:find("1.25 倍") ~= nil, "payload speed instruction")
+check(payload.messages[1].content:find("语速稍快") ~= nil, "payload speed instruction")
 check(payload.messages[1].content:find("温柔的旁白") ~= nil, "payload style prompt")
 local p2 = api:buildPayload("hi")
 check(#p2.messages == 2 and p2.messages[1].content == "温柔的旁白"

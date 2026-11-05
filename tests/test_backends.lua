@@ -49,7 +49,7 @@ local Player = require("player")
 
 -- speed up the mock's playback timing
 local mock = ffi.load("/tmp/mimottest/mocksl/libOpenSLES.so")
-ffi.cdef[[ void mock_set_timescale(double s); void mock_reset(void); uint64_t mock_enqueued_total(void); uint32_t mock_play_state(void); ]]
+ffi.cdef[[ void mock_set_timescale(double s); void mock_reset(void); uint64_t mock_enqueued_total(void); uint32_t mock_play_state(void); uint32_t mock_rate_milli(void); ]]
 mock.mock_set_timescale(0.01) -- 1s of PCM ~= 10ms busy
 
 --------------------------------------------------------------- WAV parsing
@@ -101,6 +101,36 @@ f3:close()
 check(sl:play("/tmp/mimottest/t_stereo.wav") == true, "opensles play stereo 44.1k (format change)")
 sl:stop()
 check(sl:play("/tmp/mimottest/t_bad.wav") == nil, "opensles rejects non-wav input")
+
+--------------------------------------------------------------- player-level speed (opensles)
+local sl_fast = OpenSLES:new{ speed = 2 }
+mock.mock_reset()
+check(sl_fast:play(wav_path) == true, "opensles play at 2x")
+check(mock.mock_rate_milli() == 48000000, "2x declares 48 milliHz x2: " .. tostring(mock.mock_rate_milli()))
+sl_fast:stop()
+local sl_slow = OpenSLES:new{ speed = 0.5 }
+check(sl_slow:play(wav_path) == true, "opensles play at 0.5x")
+check(mock.mock_rate_milli() == 12000000, "0.5x declares 24 milliHz x0.5: " .. tostring(mock.mock_rate_milli()))
+sl_slow:stop()
+check(OpenSLES:new{ speed = 99 }:play(wav_path) == true, "opensles play with absurd speed clamped")
+check(mock.mock_rate_milli() == 24000000, "absurd speed falls back to 1x")
+sl:stop()
+mock.mock_reset()
+
+--------------------------------------------------------------- player-level speed (command args)
+local arg_mp = Player.speedSpecFor("mpv")
+check(arg_mp ~= nil and string.format(arg_mp, 1.5) == "--speed=1.5", "mpv speed arg: " .. tostring(arg_mp))
+local arg_ff = Player.speedSpecFor("ffplay")
+check(type(arg_ff) == "function" and arg_ff(2.5) == "-af atempo=2,atempo=1.25",
+    "ffplay atempo chain: " .. tostring(type(arg_ff) == "function" and arg_ff(2.5)))
+local arg_so, tail_so = Player.speedSpecFor("play")
+check(arg_so == nil and tail_so == "tempo %.3g", "sox uses a tempo tail")
+local arg_none = Player.speedSpecFor("mpg123")
+check(arg_none == nil and select(2, Player.speedSpecFor("mpg123")) == nil, "mpg123 has no speed support")
+local p_sp = Player:new{ cache_dir = "/tmp/mimottest", forced_cmd = "sh -c 'sleep 0.1' x", speed = 1.5 }
+local ok_sp, err_sp = p_sp:play(wav_path)
+check(ok_sp == nil and tostring(err_sp):find("自定义") ~= nil,
+    "custom command rejects player speed loudly: " .. tostring(err_sp))
 
 --------------------------------------------------------------- manager: backend selection
 local p1 = Player:new{ cache_dir = "/tmp/mimottest", forced_cmd = "sh -c 'sleep 0.2' x" }
