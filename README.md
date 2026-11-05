@@ -28,8 +28,8 @@ Implementation follows the official documentation
   - `mimo-v2.5-tts-voiceclone`: clone a voice from an mp3/wav sample (≤10MB)
 - **Style control** (both documented mechanisms):
   - natural language: a *style prompt* goes into the user message
-    (e.g. "a warm audiobook narrator"); the AI speed goes there too, mapped
-    to the descriptive phrasing the official docs use (e.g. "语速稍快")
+    (e.g. "a warm audiobook narrator"); the AI speed text goes there too,
+    verbatim, in any language
   - audio tags: an optional *style tag* is prepended to the text, e.g.
     `(gentle)`, `(magnetic)`, `(singing)`
 - **Two separate speeds**: AI speed (at synthesis) and player speed (at
@@ -92,24 +92,24 @@ The *Choose preset voice* submenu switches between the official voices
 
 | Setting | Default | Notes |
 | --- | --- | --- |
-| AI speed (synthesis, 1.0 = normal) | `1.0` | Mapped to the documented descriptive phrases sent in the user message (see below); affects synthesis & caching |
+| AI speed text (synthesis, empty = normal) | (empty) | Natural-language text sent verbatim in the user message, any language; affects synthesis & caching |
 | Player speed (playback, 1.0 = normal) | `1.0` | Real playback speed-up, no re-synthesis; range 0.25–4 |
 | Max segment length (longer ones are split) | `300` | Upper bound for overlong sentences |
 | Player command (empty = auto-detect) | (empty) | e.g. `mpv --no-video`; the file name is appended to the command |
 | Playback backend (auto/command/opensles) | `auto` | Force a specific backend if needed |
 
-**AI speed mapping**: the model follows the descriptive phrases from the
-official docs ("语速稍快" and friends), not numeric multipliers, so the
-setting maps onto documented bands:
+**AI speed text**: write the speed description you want and it reaches the
+model verbatim.  The model reacts best to the descriptive phrasing of the
+official docs (numeric multipliers like "2x speed" do nothing), e.g.:
 
-| Setting | Instruction | Setting | Instruction |
-| --- | --- | --- | --- |
-| ≤ 0.65 | 语速极慢 | 1 – 1.25 | 语速稍快 |
-| 0.65 – 0.85 | 语速缓慢 | 1.25 – 1.75 | 语速偏快 |
-| 0.85 – 1 | 语速稍慢 | > 1.75 | 语速极快 |
+- Chinese: `语速稍快`, `语速偏快，像连珠炮`, `极慢，每个字都拖长`
+- English: `speak a little faster, with energy`
+- Japanese: `早口で、明るく話して`
+- any mix of languages works
 
-(1.0 sends no instruction; in voice-design mode the AI speed is folded into
-the voice description and never contradicts a pace already described there.)
+(Empty sends no instruction; in voice-design mode the text is folded into
+the voice description and never contradicts a pace already described there
+— detected via keywords like 语速/速度/speed/pace/slow/fast/早口.)
 
 **Player speed support**: mpv (`--speed`, pitch kept), ffplay (`atempo`,
 pitch kept), sox `play` (`tempo`, pitch kept), afplay (`-r`), and OpenSL

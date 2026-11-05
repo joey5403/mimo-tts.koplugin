@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mimo-tts 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-05 15:56+0800\n"
+"POT-Creation-Date: 2026-11-05 16:08+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -213,7 +213,7 @@ msgstr ""
 msgid "Finished reading"
 msgstr ""
 
-#: main.lua:680 main.lua:1008
+#: main.lua:680 main.lua:1005
 msgid "MiMo TTS 合成失败：%1"
 msgstr ""
 
@@ -249,7 +249,7 @@ msgstr ""
 msgid "Save"
 msgstr ""
 
-#: main.lua:902 main.lua:941 main.lua:989
+#: main.lua:902 main.lua:941 main.lua:986
 msgid "Settings saved"
 msgstr ""
 
@@ -286,7 +286,7 @@ msgid "MiMo TTS playback & segmentation settings"
 msgstr ""
 
 #: main.lua:956
-msgid "AI speed (synthesis, 1.0 = normal)"
+msgid "AI speed text (natural language, empty = normal)"
 msgstr ""
 
 #: main.lua:957
@@ -305,23 +305,23 @@ msgstr ""
 msgid "Playback backend (auto/command/opensles)"
 msgstr ""
 
-#: main.lua:1001
+#: main.lua:998
 msgid "你好，这是 MiMo TTS 语音听书测试。"
 msgstr ""
 
-#: main.lua:1004
+#: main.lua:1001
 msgid "Synthesizing test audio…"
 msgstr ""
 
-#: main.lua:1021
+#: main.lua:1018
 msgid "Delete all cached audio files?"
 msgstr ""
 
-#: main.lua:1022
+#: main.lua:1019
 msgid "Delete"
 msgstr ""
 
-#: main.lua:1026
+#: main.lua:1023
 msgid "Audio cache cleared"
 msgstr ""
 

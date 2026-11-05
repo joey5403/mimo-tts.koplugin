@@ -39,7 +39,7 @@ local DEFAULTS = {
     model         = "mimo-v2.5-tts",
     voice         = "mimo_default",
     audio_format  = "mp3",
-    speed         = 1.0,
+    speed_text    = "",
     player_speed  = 1.0,
     style_prompt  = "",
     style_tag     = "",
@@ -151,7 +151,7 @@ function MiMoTTS:_makeAPI()
         use_streaming = s.use_streaming,
         optimize_text_preview = s.optimize_text_preview,
         cache_dir = self.cache_dir,
-        speed = s.speed,
+        speed_text = s.speed_text,
     }
 end
 
@@ -672,7 +672,7 @@ function MiMoTTS:_audioFileFor(chunk, quiet)
         return path
     end
     logger.info("MiMoTTS: synthesizing chunk of", #tts_text, "bytes")
-    local ok, err = self.api:synthesize(tts_text, self.settings.speed, path)
+    local ok, err = self.api:synthesize(tts_text, path)
     if not ok then
         logger.warn("MiMoTTS: synthesis failed:", err)
         if not quiet then
@@ -953,7 +953,7 @@ function MiMoTTS:showPlaybackSettings()
     dialog = MultiInputDialog:new{
         title = _("MiMo TTS playback & segmentation settings"),
         fields = {
-            { description = _("AI speed (synthesis, 1.0 = normal)"), input_type = "number", text = tostring(s.speed), hint = "1.0" },
+            { description = _("AI speed text (natural language, empty = normal)"), text = s.speed_text, hint = "语速稍快 / speak faster" },
             { description = _("Player speed (playback, 1.0 = normal)"), input_type = "number", text = tostring(s.player_speed or 1.0), hint = "1.0" },
             { description = _("Max segment length (longer ones are split)"), input_type = "number", text = tostring(s.chunk_size), hint = "300" },
             { description = _("Player command (empty = auto-detect)"), text = s.player_cmd, hint = "mpv --no-video" },
@@ -972,10 +972,7 @@ function MiMoTTS:showPlaybackSettings()
                     text = _("Save"),
                     callback = function()
                         local fields = dialog:getFields()
-                        s.speed = tonumber(fields[1]) or 1.0
-                        if s.speed <= 0 then
-                            s.speed = 1.0
-                        end
+                        s.speed_text = tostring(fields[1] or ""):gsub("^%s+", ""):gsub("%s+$", "")
                         s.player_speed = tonumber(fields[2]) or 1.0
                         if s.player_speed < 0.25 or s.player_speed > 4 then
                             s.player_speed = 1.0
@@ -1002,7 +999,7 @@ function MiMoTTS:testTTS()
     local path = string.format("%s/test.%s", self.cache_dir, (self.audio_format or "mp3"):lower())
     os.remove(path)
     UIManager:show(InfoMessage:new{ text = _("Synthesizing test audio…") })
-    local ok, err = self.api:synthesize(text, self.settings.speed, path)
+    local ok, err = self.api:synthesize(text, path)
     if not ok then
         UIManager:show(InfoMessage:new{
             text = T(_("MiMo TTS 合成失败：%1"), err),

@@ -82,35 +82,18 @@ end
 
 -- Request building ---------------------------------------------------------
 
---- Map a numeric speed to the descriptive phrasing the official MiMo docs
---- use ("语速稍快" / "语速偏快" / "语速极慢" ...).  The model is trained on
---- these natural language phrases and ignores numeric multipliers
---- ("语速约为正常的 2 倍"), which appear nowhere in the docs.
-function MiMoAPI:speedPhrase(speed)
-    speed = tonumber(speed)
-    if not speed or speed <= 0 or speed == 1 then
-        return nil
-    end
-    if speed < 1 then
-        if speed <= 0.65 then return "语速极慢" end
-        if speed <= 0.85 then return "语速缓慢" end
-        return "语速稍慢"
-    end
-    if speed <= 1.25 then return "语速稍快" end
-    if speed <= 1.75 then return "语速偏快" end
-    return "语速极快"
-end
-
---- Build the natural language instruction (user message content).
-function MiMoAPI:buildStyleInstruction(speed)
+--- Build the natural language instruction (user message content).  The AI
+--- speed is free text in any language the model understands ("语速稍快",
+--- "speak faster", "早口で話す" ...), sent verbatim.
+function MiMoAPI:buildStyleInstruction()
     local parts = {}
     local style = (self.style_prompt or ""):gsub("^%s+", ""):gsub("%s+$", "")
     if style ~= "" then
         parts[#parts + 1] = style
     end
-    local phrase = self:speedPhrase(speed)
-    if phrase then
-        parts[#parts + 1] = phrase .. "。"
+    local speed = (self.speed_text or ""):gsub("^%s+", ""):gsub("%s+$", "")
+    if speed ~= "" then
+        parts[#parts + 1] = speed
     end
     return table.concat(parts, " ")
 end
@@ -151,28 +134,45 @@ function MiMoAPI:voiceSampleDataURI()
     return self._voice_sample_cache
 end
 
+--- Whether a voice description already sets a pace (keyword heuristic across
+--- the languages users write descriptions in): such a description wins over
+--- the AI speed text instead of contradicting it.
+local PACE_HINTS = {
+    "语速", "速度", "speed", "pace", "slow", "fast", "quick", "rapid", "brisk",
+    "早口", "ゆっくり", "천천히", "빠르게",
+}
+local function describes_pace(desc)
+    local lower = desc:lower()
+    for _, kw in ipairs(PACE_HINTS) do
+        if lower:find(kw, 1, true) then
+            return true
+        end
+    end
+    return false
+end
+
 --- Build the chat-completions payload for one chunk of text.
 -- @treturn table|nil payload
 -- @treturn string|nil error message
-function MiMoAPI:buildPayload(text, speed, streaming)
+function MiMoAPI:buildPayload(text, streaming)
     local mode = self:getMode()
     local messages = {}
     if mode == "voicedesign" then
         -- user message = voice design description (required by the API); the
-        -- docs list 语速/节奏 as a description dimension, so the AI speed goes
-        -- there -- unless the description already sets a pace (never
+        -- docs list 语速/节奏 as a description dimension, so the AI speed text
+        -- goes there -- unless the description already sets a pace (never
         -- contradict an explicit description)
         local desc = (self.voice_description or ""):gsub("^%s+", ""):gsub("%s+$", "")
         if desc == "" then
             return nil, "音色设计模式（mimo-v2.5-tts-voicedesign）需要填写音色描述"
         end
-        local phrase = self:speedPhrase(speed)
-        if phrase and not desc:find("语速") then
-            desc = desc .. "，" .. phrase
+        local speed = (self.speed_text or ""):gsub("^%s+", ""):gsub("%s+$", "")
+        if speed ~= "" and not describes_pace(desc) then
+            desc = desc .. "，" .. speed
         end
         messages[#messages + 1] = { role = "user", content = desc }
     else
-        local instruction = self:buildStyleInstruction(speed)
+        local instruction = self:buildStyleInstruction()
         if instruction ~= "" then
             messages[#messages + 1] = { role = "user", content = instruction }
         end
@@ -437,11 +437,10 @@ end
 
 --- Synthesize one chunk of text into an audio file (non-streaming).
 -- @string text text to speak
--- @number speed playback speed (1.0 = normal)
 -- @string out_path where to write the audio bytes
 -- @treturn boolean|nil success
 -- @treturn string audio path on success, error message on failure
-function MiMoAPI:synthesize(text, speed, out_path)
+function MiMoAPI:synthesize(text, out_path)
     if not text or text:find("%S") == nil then
         return nil, "empty text"
     end
@@ -452,7 +451,7 @@ function MiMoAPI:synthesize(text, speed, out_path)
         return nil, "API base URL is not set"
     end
 
-    local payload, err = self:buildPayload(text, speed, self.use_streaming)
+    local payload, err = self:buildPayload(text, self.use_streaming)
     if not payload then
         return nil, err
     end
@@ -556,7 +555,7 @@ function MiMoAPI:cacheKey(text)
         sample_id,
         self.use_streaming and "stream" or "plain",
         self.optimize_text_preview and "otp" or "-",
-        tostring(self.speed or ""),
+        tostring(self.speed_text or ""),
         text or "",
     }, "\1")
     -- Two rotate-xor accumulators (kept fully in 32-bit range), used as a

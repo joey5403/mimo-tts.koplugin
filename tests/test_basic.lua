@@ -76,17 +76,18 @@ local api = MiMoAPI:new{
     voice = "mimo_default",
     audio_format = "mp3",
     style_prompt = "温柔的旁白",
+    speed_text = "语速稍快",
 }
-local payload = api:buildPayload("你好世界", 1.25)
+local payload = api:buildPayload("你好世界")
 check(payload.model == "mimo-v2.5-tts", "payload model")
 check(payload.audio.format == "mp3" and payload.audio.voice == "mimo_default", "payload audio block")
 check(payload.messages[#payload.messages].role == "assistant", "payload assistant message")
 check(payload.messages[#payload.messages].content == "你好世界", "payload text")
-check(payload.messages[1].content:find("语速稍快") ~= nil, "payload speed instruction")
+check(payload.messages[1].content:find("语速稍快") ~= nil, "payload speed text")
 check(payload.messages[1].content:find("温柔的旁白") ~= nil, "payload style prompt")
-local p2 = api:buildPayload("hi")
-check(#p2.messages == 2 and p2.messages[1].content == "温柔的旁白"
-    and not p2.messages[1].content:find("speed"), "payload without speed: " .. p2.messages[1].content)
+local p2 = MiMoAPI:new{ style_prompt = "温柔的旁白", audio_format = "mp3" }:buildPayload("hi")
+check(#p2.messages == 2 and p2.messages[1].content == "温柔的旁白",
+    "payload without speed: " .. p2.messages[1].content)
 local p3 = MiMoAPI:new{ model = "m", audio_format = "mp3" }:buildPayload("hi")
 check(#p3.messages == 1 and p3.messages[1].role == "assistant", "payload without user message")
 
