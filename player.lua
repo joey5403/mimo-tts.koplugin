@@ -38,6 +38,10 @@ end
 
 -- Ordered by preference; first available binary wins.
 local CANDIDATES = {
+    -- Kindle: the bundled GStreamer WAV player feeding Amazon's private
+    -- mixersink (routes to BT headphones).  Most specific backend: checked
+    -- first.  See bin/NOTICE.md for origin and license.
+    { bin = "kindle-gst-play", args = {}, formats = { wav = true }, bundled = true },
     { bin = "mpv",     args = { "--no-video", "--really-quiet", "--no-terminal", "--gapless-audio=yes" },
       formats = { mp3 = true, wav = true }, speed_arg = "--speed=%.3g" },
     { bin = "ffplay",  args = { "-nodisp", "-autoexit", "-loglevel", "quiet", "-nostats" },
@@ -66,6 +70,29 @@ local function command_exists(bin)
     local quoted = util.shell_escape({ bin })
     return shell_ok("command -v " .. quoted .. " >/dev/null 2>&1")
         or shell_ok("which " .. quoted .. " >/dev/null 2>&1")
+end
+
+--- Directory of this plugin (…/plugins/mimo-tts.koplugin).
+local function plugin_dir()
+    local src = debug.getinfo(1, "S").source:match("^@(.+)$")
+    return (src and src:match("^(.*)[/\\][^/\\]*$")) or "."
+end
+
+--- Command for the bundled Kindle GStreamer player (bin/kindle-gst-play),
+--- run through the bundled glibc loader -- the binary needs GLIBC >= 2.34
+--- and the Kindle system glibc is older (see bin/NOTICE.md).  Returns nil
+--- unless the chain actually executes here: on an ARM Kindle it does, on
+--- any other platform the armv7l binary is rejected like a missing player.
+local function bundled_gst_play()
+    local base = plugin_dir() .. "/bin"
+    local cmd = string.format("LD_LIBRARY_PATH=%s %s %s",
+        util.shell_escape({ base .. "/lib" }),
+        util.shell_escape({ base .. "/lib/ld-linux-armhf.so.3" }),
+        util.shell_escape({ base .. "/kindle-gst-play" }))
+    if shell_ok(cmd .. " --version >/dev/null 2>&1") then
+        return cmd
+    end
+    return nil
 end
 
 function CommandBackend:new(o)
@@ -97,8 +124,14 @@ function CommandBackend:getCommand()
         return self.cached_cmd
     end
     for _, cand in ipairs(CANDIDATES) do
+        local cmd
         if command_exists(cand.bin) then
-            self.cached_cmd = table.concat({ cand.bin, unpack(cand.args) }, " ")
+            cmd = table.concat({ cand.bin, unpack(cand.args) }, " ")
+        elseif cand.bundled then
+            cmd = bundled_gst_play()
+        end
+        if cmd then
+            self.cached_cmd = cmd
             self.cached_formats = cand.formats
             self.cached_name = cand.bin
             self.cached_speed_arg, self.cached_speed_tail = cand.speed_arg, cand.speed_tail
@@ -307,7 +340,7 @@ function Player:diagnostics()
     if backend.backend_name == "command" then
         local found = {}
         for _, cand in ipairs(CANDIDATES) do
-            if command_exists(cand.bin) then
+            if command_exists(cand.bin) or (cand.bundled and bundled_gst_play()) then
                 found[#found + 1] = cand.bin
             end
         end

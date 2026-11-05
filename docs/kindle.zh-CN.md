@@ -23,19 +23,24 @@
 
 逃生口已经留好：**播放与分段设置 → 播放器命令**。任何"能播 mp3/wav 且播完退出"的命令都可以填进去——所以只要往设备里拷一个静态链接的播放器二进制即可，**不需要改任何代码**。
 
-## 关卡 2：音频路由未知
+## 关卡 2：音频路由（已破解）
 
-现代 Kindle（PW4/PW5/KT10 及之后）唯一的音频出口是固件的蓝牙栈（`com.lab126.btService` / `com.lab126.btfd`），且按亚马逊官方说明仅限 VoiceView（屏幕朗读）和 Audible 用途。越狱后用户态播放器能否把 PCM 送进这个蓝牙栈，**全网没有任何人验证过**——这正是测试机的任务。
+现代 Kindle（PW4/PW5/KT10 及之后）唯一的音频出口是固件蓝牙栈（`com.lab126.btfd` / `com.lab126.btService`）。亚马逊**不把蓝牙耳机暴露为 ALSA 设备**——即使耳机已连接，`/proc/asound/cards` 也报 "no soundcards"。但 [stradichenko/audiobook.koplugin](https://github.com/stradichenko/audiobook.koplugin) 项目的硬核逆向（见其 `docs/PLATFORM_AUDIO.md`）找到了私有通道：
 
-插件的"播放器诊断"菜单会在 Kindle 上探测环境（ALSA `/dev/snd`、OSS `/dev/dsp`、蓝牙硬件、`btService` 进程），让第一次实验一眼就能得到答案。
+```
+WAV → GStreamer 0.10 私有 "mixersink" → audiomgrd → audio.a2dp.default.so → 蓝牙耳机
+（备选：LIPC com.lab126.playermgr Open/Play/InPlayback，同一管道）
+```
+
+本插件捆绑了他们项目的 `kindle-gst-play` 小工具（AGPL-3.0，原样不改动——见 `bin/NOTICE.md`），负责把 PCM 喂进 `mixersink`，并附带 glibc 运行时以兼容 Kindle 较旧的系统 glibc。它会被自动识别为 wav-only 播放后端；该方案已在 Kindle Basic 2022（11 代）上验证。
 
 ## 情景与计划
 
 | 真机验证结果 | 路线 | 代码工作 |
 | --- | --- | --- |
-| A. 蓝牙栈暴露标准音频接口（ALSA/OSS/BlueZ） | 交叉编译一个小的静态播放器（如 mpg123），在「播放器命令」里指向它 | **零改动** |
-| B. 蓝牙音频只认 Audible 私有通道 | 逆向 `btService`，或向它投喂伪装的 Audible 文件 | 新增 `kindle` 后端 |
-| C. 蓝牙完全锁死 | (1) 回退到 Kindle Touch/Keyboard 的有线音频（内核音频，有 mplayer 移植先例）；(2) 新增 **HTTP 推流后端**：合成音频通过网络推给手机播放——反正 Kindle 要戴耳机，这个体验可能才是对的 | 新增推流后端 |
+| A. 蓝牙栈暴露标准音频接口（ALSA/OSS/BlueZ） | 静态播放器（如 mpg123），在「播放器命令」里指向它 | **零改动** |
+| B. 存在 GStreamer `mixersink`（**已知解法**） | 捆绑的 `kindle-gst-play` 自动识别，wav 格式自动协商 | **无需改动——已随包发布** |
+| C. 某些机型没有 GStreamer/mixersink | (1) LIPC `playermgr` 路线（上游已实现，可移植）；(2) HTTP 推流后端：合成音频推给手机播放 | 新后端 |
 
 无论结果如何，C(2) 都值得做："Kindle 看屏幕 + 手机出声"正好匹配人们真实的听书习惯。
 
@@ -48,5 +53,13 @@
 - [ ] 安装 KOReader（固件 ≥ 5.16.3 用 **KindleHF** 构建；较新的越狱自带 Kindle Package Manager）
 - [ ] 安装本插件，确认合成与缓存正常
 - [ ] 打开「播放器诊断」，记录音频环境各项状态
-- [ ] 探测音频路由：查看 `/dev/snd`、`/dev/dsp`、BlueZ socket、`btService` 暴露的接口，判定属于情景 A/B/C
+- [ ] 探测音频路由：`bin/kindle-gst-play --probe`（看是否有 `mixersink`）、`lipc-probe com.lab126.playermgr`，结合诊断里的 ALSA/OSS/蓝牙报告，判定情景 A/B/C
+- [ ] 若为 B：直接播放即可——捆绑后端自动识别（wav-only，合成格式自动协商）
 - [ ] 若为 A：构建/上传静态 armv7l 播放器，在「播放器命令」中接好
+
+## 致谢
+
+Kindle 音频路线（`mixersink → audiomgrd → A2DP`）和 `gst-play` 小工具来自
+[stradichenko/audiobook.koplugin](https://github.com/stradichenko/audiobook.koplugin)
+（AGPL-3.0）——这项逆向工程的全部功劳属于该项目的作者们。该工具以原样（未修改）
+形式随附于 `bin/` 目录并附带其许可证，详见 [`bin/NOTICE.md`](../bin/NOTICE.md)。

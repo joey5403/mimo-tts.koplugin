@@ -31,27 +31,36 @@ command that plays mp3/wav and exits can be plugged in there, so dropping a
 statically linked player binary onto the device is enough -- no code changes
 required.
 
-## Gate 2: the audio route is unknown
+## Gate 2: the audio route (now known)
 
 On modern Kindles (PW4/PW5/KT10 and later) the only audio output is the
-firmware Bluetooth stack (`com.lab126.btService` / `com.lab126.btfd`), and
-per Amazon's own docs it is limited to VoiceView and Audible. Whether a
-userspace player can push PCM into it on a jailbroken device is **unverified
-by anyone** -- that is exactly what the test device is for.
+firmware Bluetooth stack (`com.lab126.btfd` / `com.lab126.btService`).
+Amazon does not expose BT headphones as an ALSA device -- `/proc/asound/cards`
+reports "no soundcards" even with headphones connected.  But the hard
+reverse-engineering done by
+[stradichenko/audiobook.koplugin](https://github.com/stradichenko/audiobook.koplugin)
+(see its `docs/PLATFORM_AUDIO.md`) found the private path:
 
-The plugin's diagnostics menu probes the environment on Kindle (ALSA
-`/dev/snd`, OSS `/dev/dsp`, Bluetooth hardware, `btService` running) to make
-that first experiment a one-look answer.
+```
+WAV → GStreamer 0.10 private "mixersink" → audiomgrd → audio.a2dp.default.so → BT headphones
+(alternative: LIPC com.lab126.playermgr Open/Play/InPlayback, same pipeline)
+```
+
+This plugin bundles their `kindle-gst-play` helper (AGPL-3.0, unmodified --
+see `bin/NOTICE.md`) which feeds PCM into `mixersink`, plus a glibc runtime so
+it runs on the Kindle's older system glibc.  It is auto-detected as a
+wav-only player backend; verified on Kindle Basic 2022 (11th gen) by the
+upstream project.
 
 ## Scenarios and plan
 
 | Result of on-device testing | Path | Code work |
 | --- | --- | --- |
-| A. The BT stack exposes a standard audio API (ALSA/OSS/BlueZ) | Cross-compile a small static player (e.g. mpg123), point *Player command* at it | None |
-| B. BT audio only accepts the proprietary Audible path | Reverse `btService`, or feed it disguised Audible files | New `kindle` backend |
-| C. BT is fully locked | (1) fall back to Kindle Touch/Keyboard for the wired-audio path (kernel audio, mplayer ports exist); (2) add an **HTTP stream backend**: serve synthesized audio and play it on the phone -- arguably the right UX for Kindle anyway | New streaming backend |
+| A. The BT stack exposes a standard audio API (ALSA/OSS/BlueZ) | Static player (e.g. mpg123), point *Player command* at it | None |
+| B. GStreamer `mixersink` present (**known solution**) | Bundled `kindle-gst-play` -- auto-detected, wav negotiated automatically | **None -- shipped** |
+| C. No GStreamer/mixersink on some models | (1) LIPC `playermgr` route (implemented upstream, can be ported); (2) HTTP-stream backend: serve synthesized audio and play it on the phone | New backend |
 
-Scenario C(2) is attractive regardless: a Kindle screens + phone speaker/
+Scenario C(2) is attractive regardless: a Kindle screen + phone speaker/
 earbuds pairing matches how people actually listen.
 
 ## Test device checklist
@@ -64,6 +73,17 @@ earbuds pairing matches how people actually listen.
       bundle Kindle Package Manager)
 - [ ] Install the plugin, confirm synthesis + caching work
 - [ ] Open Playback diagnostics -- note the audio environment lines
-- [ ] Probe the audio route: look for `/dev/snd`, `/dev/dsp`, BlueZ sockets,
-      and what `btService` exposes; decide scenario A/B/C
+- [ ] Probe the audio route: `bin/kindle-gst-play --probe` (look for
+      `mixersink`), `lipc-probe com.lab126.playermgr`, and the diagnostics'
+      ALSA/OSS/Bluetooth report; decide scenario A/B/C
+- [ ] If B: just play -- the bundled backend is auto-detected (wav-only, so
+      the plugin negotiates the synthesis format automatically)
 - [ ] If A: build/upload a static armv7l player, wire it via *Player command*
+
+## Acknowledgements
+
+The Kindle audio route (`mixersink → audiomgrd → A2DP`) and the `gst-play`
+helper come from [stradichenko/audiobook.koplugin](https://github.com/stradichenko/audiobook.koplugin)
+(AGPL-3.0) -- all credit for that reverse engineering belongs to its authors.
+The helper is redistributed unmodified under `bin/` with its license; see
+[`bin/NOTICE.md`](../bin/NOTICE.md).

@@ -132,6 +132,39 @@ local ok_sp, err_sp = p_sp:play(wav_path)
 check(ok_sp == nil and tostring(err_sp):find("自定义") ~= nil,
     "custom command rejects player speed loudly: " .. tostring(err_sp))
 
+--------------------------------------------------------------- bundled kindle-gst-play candidate
+local stub_dir = "/tmp/mimottest/stub"
+os.execute("mkdir -p " .. stub_dir)
+local sf = io.open(stub_dir .. "/kindle-gst-play", "w")
+sf:write([[#!/bin/sh
+if [ "$1" = "--version" ]; then echo "kindle-gst-play stub"; exit 0; fi
+echo "$@" > /tmp/mimottest/gststub.args
+exit 0
+]])
+sf:close()
+os.execute("chmod +x " .. stub_dir .. "/kindle-gst-play")
+ffi.cdef[[ int setenv(const char *name, const char *value, int overwrite); ]]
+local old_path = os.getenv("PATH")
+ffi.C.setenv("PATH", stub_dir .. ":" .. old_path, 1)
+local p_kg = Player:new{ cache_dir = "/tmp/mimottest" }
+check(p_kg:getBackendName() == "command", "kindle-gst-play candidate resolves")
+check(p_kg:getFormats().wav == true and not p_kg:getFormats().mp3,
+    "kindle-gst-play is wav-only")
+check(p_kg:negotiateFormat("mp3") == "wav", "mp3 -> wav negotiated for kindle-gst-play")
+os.remove("/tmp/mimottest/gststub.args")
+check(p_kg:play(wav_path) == true, "play via kindle-gst-play stub")
+local args_txt = ""
+for _ = 1, 20 do
+    local af = io.open("/tmp/mimottest/gststub.args", "r")
+    if af then args_txt = af:read("*a") or ""; af:close(); break end
+    os.execute("sleep 0.1")
+end
+check(args_txt:find("t_parse.wav", 1, true) ~= nil, "stub received the wav path: " .. args_txt)
+p_kg:stop()
+ffi.C.setenv("PATH", old_path, 1)
+local arg_kg, tail_kg = Player.speedSpecFor("kindle-gst-play")
+check(arg_kg == nil and tail_kg == nil, "kindle-gst-play has no speed support")
+
 --------------------------------------------------------------- manager: backend selection
 local p1 = Player:new{ cache_dir = "/tmp/mimottest", forced_cmd = "sh -c 'sleep 0.2' x" }
 check(p1:getBackendName() == "command", "forced command wins: " .. p1:getBackendName())
