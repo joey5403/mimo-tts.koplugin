@@ -14,6 +14,17 @@ streaming synthesis, sentence-level caching, and next/previous navigation.
 Implementation follows the official documentation
 (in Chinese): <https://mimo.mi.com/docs/zh-CN/quick-start/usage-guide/audio/speech-synthesis-v2.5>
 
+## Preview
+
+| Main menu | Settings |
+| :---: | :---: |
+| <img src="asset/english/menu-1.png" width="320" alt="Plugin menu: listen to the whole book (auto page turn), read current page, read selected text, next/previous segment, stop reading, test reading, playback diagnostics, preset voices, streaming synthesis"> | <img src="asset/english/menu-2.png" width="320" alt="Plugin settings: top menu icon, underline text while reading, API & model settings, voice & style settings, playback & segmentation settings, clear audio cache, about MiMo TTS"> |
+
+**Demo** (screen recording with audio, 37 s): the sentence being spoken is
+underlined, and the underline moves on as soon as it has been read --
+[![Demo: read-aloud with a moving underline](asset/english/video-poster.jpg)
+](asset/english/video.mp4)
+
 ## Features
 
 - **Continuous listening**: from the current page to the end of the book,
