@@ -23,19 +23,35 @@ local CommandBackend = {}
 CommandBackend.__index = CommandBackend
 CommandBackend.backend_name = "command"
 
+-- Player-level speed (time-stretch at playback): per-candidate support.
+--   speed_arg  -- inserted before the file name (string.format or function)
+--   speed_tail -- appended after the file name (string.format, e.g. sox)
+-- Candidates without either simply do not support speed.
+local function atempo_chain(speed)
+    -- atempo accepts 0.5..2.0 per instance (older ffmpeg): factor into range
+    local parts, s = {}, speed
+    while s > 2.0 do parts[#parts + 1] = string.format("atempo=%.3g", 2.0); s = s / 2.0 end
+    while s < 0.5 do parts[#parts + 1] = string.format("atempo=%.3g", 0.5); s = s / 0.5 end
+    parts[#parts + 1] = string.format("atempo=%.3g", s)
+    return table.concat(parts, ",")
+end
+
 -- Ordered by preference; first available binary wins.
 local CANDIDATES = {
     { bin = "mpv",     args = { "--no-video", "--really-quiet", "--no-terminal", "--gapless-audio=yes" },
-      formats = { mp3 = true, wav = true } },
+      formats = { mp3 = true, wav = true }, speed_arg = "--speed=%.3g" },
     { bin = "ffplay",  args = { "-nodisp", "-autoexit", "-loglevel", "quiet", "-nostats" },
-      formats = { mp3 = true, wav = true } },
+      formats = { mp3 = true, wav = true },
+      speed_arg = function(s) return "-af " .. atempo_chain(s) end },
     { bin = "mpg123",  args = { "-q" }, formats = { mp3 = true, wav = true } },
     { bin = "madplay", args = { "-Q" }, formats = { mp3 = true } },
     { bin = "ogg123",  args = { "-q" }, formats = { wav = true } },
-    { bin = "play",    args = { "-q" }, formats = { mp3 = true, wav = true } },
+    { bin = "play",    args = { "-q" }, formats = { mp3 = true, wav = true },
+      speed_tail = "tempo %.3g" },
     { bin = "aplay",   args = { "-q" }, formats = { wav = true } },
     { bin = "paplay",  args = {},      formats = { wav = true } },
-    { bin = "afplay",  args = {},      formats = { mp3 = true, wav = true } }, -- macOS
+    { bin = "afplay",  args = {},      formats = { mp3 = true, wav = true }, -- macOS
+      speed_arg = "-r %.3g" },
 }
 
 local function shell_ok(cmd)
@@ -56,6 +72,17 @@ function CommandBackend:new(o)
     return setmetatable(o or {}, CommandBackend)
 end
 
+--- Speed argument for a known player binary (for tests and diagnostics).
+-- Returns speed_arg, speed_tail -- both nil means "no speed support".
+function CommandBackend.speedSpecFor(bin)
+    for _, cand in ipairs(CANDIDATES) do
+        if cand.bin == bin then
+            return cand.speed_arg, cand.speed_tail
+        end
+    end
+    return nil, nil
+end
+
 --- Resolve the command to use (custom one, or the first available player).
 function CommandBackend:getCommand()
     if self.cached_cmd then
@@ -66,6 +93,7 @@ function CommandBackend:getCommand()
         self.cached_cmd = forced
         self.cached_formats = { mp3 = true, wav = true } -- user knows better
         self.cached_name = "自定义命令"
+        self.cached_custom = true
         return self.cached_cmd
     end
     for _, cand in ipairs(CANDIDATES) do
@@ -73,6 +101,7 @@ function CommandBackend:getCommand()
             self.cached_cmd = table.concat({ cand.bin, unpack(cand.args) }, " ")
             self.cached_formats = cand.formats
             self.cached_name = cand.bin
+            self.cached_speed_arg, self.cached_speed_tail = cand.speed_arg, cand.speed_tail
             logger.info("MiMoTTS: using audio player:", self.cached_cmd)
             return self.cached_cmd
         end
@@ -94,8 +123,26 @@ function CommandBackend:play(file_path)
     if not self.pid_file then
         return nil, "player cache dir is not set"
     end
-    local full = string.format("%s %s >/dev/null 2>&1 & echo $! > %s",
-        cmd, util.shell_escape({ file_path }), util.shell_escape({ self.pid_file }))
+    -- player-level speed: only when it differs from normal
+    local pre, post = "", ""
+    local speed = tonumber(self.speed) or 1
+    if speed > 0 and speed ~= 1 then
+        if self.cached_custom then
+            return nil, "自定义播放器命令不支持倍速设置，请把倍速参数直接写进播放器命令"
+        end
+        if self.cached_speed_arg then
+            pre = " " .. (type(self.cached_speed_arg) == "function"
+                and self.cached_speed_arg(speed)
+                or string.format(self.cached_speed_arg, speed))
+        elseif self.cached_speed_tail then
+            post = " " .. string.format(self.cached_speed_tail, speed)
+        else
+            return nil, string.format("播放器 %s 不支持倍速，请换用 mpv/ffplay，或改用 AI 语速",
+                tostring(self.cached_name))
+        end
+    end
+    local full = string.format("%s%s %s%s >/dev/null 2>&1 & echo $! > %s",
+        cmd, pre, util.shell_escape({ file_path }), post, util.shell_escape({ self.pid_file }))
     logger.dbg("MiMoTTS: spawn player:", full)
     shell_ok(full)
     self.last_file = file_path
@@ -138,6 +185,9 @@ end
 local Player = {}
 Player.__index = Player
 
+-- exposed for tests/diagnostics: speed support of a known player binary
+Player.speedSpecFor = CommandBackend.speedSpecFor
+
 function Player:new(o)
     local self = setmetatable(o or {}, Player)
     self.pid_file = (self.cache_dir or "/tmp") .. "/mimo_tts_player.pid"
@@ -153,12 +203,12 @@ function Player:getBackend()
     local want = (self.backend_name or "auto"):lower()
 
     local function command_backend()
-        return CommandBackend:new{ pid_file = self.pid_file, forced_cmd = self.forced_cmd }
+        return CommandBackend:new{ pid_file = self.pid_file, forced_cmd = self.forced_cmd, speed = self.speed }
     end
     local function opensles_backend()
         local ok = OpenSLES.available()
         if ok then
-            return OpenSLES:new{}
+            return OpenSLES:new{ speed = self.speed }
         end
         return nil
     end
@@ -249,6 +299,10 @@ function Player:diagnostics()
     }
     if self._backend_err then
         lines[#lines + 1] = _("注意：") .. self._backend_err
+    end
+    local speed = tonumber(self.speed) or 1
+    if speed ~= 1 then
+        lines[#lines + 1] = _("播放器倍速：") .. tostring(speed)
     end
     if backend.backend_name == "command" then
         local found = {}

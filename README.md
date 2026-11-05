@@ -28,9 +28,12 @@ Implementation follows the official documentation
   - `mimo-v2.5-tts-voiceclone`: clone a voice from an mp3/wav sample (≤10MB)
 - **Style control** (both documented mechanisms):
   - natural language: a *style prompt* goes into the user message
-    (e.g. "a warm audiobook narrator"); playback speed is controlled there too
+    (e.g. "a warm audiobook narrator"); the AI speed text goes there too,
+    verbatim, in any language
   - audio tags: an optional *style tag* is prepended to the text, e.g.
     `(gentle)`, `(magnetic)`, `(singing)`
+- **Two separate speeds**: AI speed (at synthesis) and player speed (at
+  playback) are configured independently and can be combined
 - **Sentence-level reading with precise underline**: one sentence per segment;
   the sentence being spoken gets an underline, which is removed as soon as it
   has been read and moves to the next one
@@ -89,10 +92,31 @@ The *Choose preset voice* submenu switches between the official voices
 
 | Setting | Default | Notes |
 | --- | --- | --- |
-| Speed (1.0 = normal) | `1.0` | Natural-language speed control via the user message (1.25 → "Speak at approximately 1.25x speed.") |
+| AI speed text (synthesis, empty = normal) | (empty) | Natural-language text sent verbatim in the user message, any language; affects synthesis & caching |
+| Player speed (playback, 1.0 = normal) | `1.0` | Real playback speed-up, no re-synthesis; range 0.25–4 |
 | Max segment length (longer ones are split) | `300` | Upper bound for overlong sentences |
 | Player command (empty = auto-detect) | (empty) | e.g. `mpv --no-video`; the file name is appended to the command |
 | Playback backend (auto/command/opensles) | `auto` | Force a specific backend if needed |
+
+**AI speed text**: write the speed description you want and it reaches the
+model verbatim.  The model reacts best to the descriptive phrasing of the
+official docs (numeric multipliers like "2x speed" do nothing), e.g.:
+
+- Chinese: `语速稍快`, `语速偏快，像连珠炮`, `极慢，每个字都拖长`
+- English: `speak a little faster, with energy`
+- Japanese: `早口で、明るく話して`
+- any mix of languages works
+
+(Empty sends no instruction; in voice-design mode the text is folded into
+the voice description and never contradicts a pace already described there
+— detected via keywords like 语速/速度/speed/pace/slow/fast/早口.)
+
+**Player speed support**: mpv (`--speed`, pitch kept), ffplay (`atempo`,
+pitch kept), sox `play` (`tempo`, pitch kept), afplay (`-r`), and OpenSL
+ES/Android (declares a scaled sample rate, **pitch shifts with it**).  Other
+command line players do not support it and report a clear error.  Custom
+player commands should carry their own speed argument.  Player speed only
+affects playback -- synthesis and caching are untouched.
 
 ### Request example (matches the official docs)
 
@@ -104,7 +128,7 @@ Content-Type: application/json
 {
   "model": "mimo-v2.5-tts",
   "messages": [
-    {"role": "user", "content": "a warm audiobook narrator Speak at approximately 1.25x speed."},
+    {"role": "user", "content": "a warm audiobook narrator 语速稍快。"},
     {"role": "assistant", "content": "(gentle)the text to be spoken"}
   ],
   "audio": {"format": "mp3", "voice": "mimo_default"}

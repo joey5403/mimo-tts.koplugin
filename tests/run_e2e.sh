@@ -62,7 +62,7 @@ open("/tmp/mimottest/e2e-home/settings.reader.lua", "w").write("""return {
         ["model"] = "mimo-v2.5-tts",
         ["voice"] = "mimo_default",
         ["audio_format"] = "mp3",
-        ["speed"] = 1.25,
+        ["speed_text"] = "speak a little faster",
         ["style_prompt"] = "\u6d4b\u8bd5\u98ce\u683c",
         ["style_tag"] = "\u6e29\u67d4",
         ["use_streaming"] = true,
@@ -132,7 +132,7 @@ check "request uses api-key header" "$(grep -c 'api-key=test-key' "$MOCK_LOG")" 
 check "main run uses streaming (pcm16 + stream flag)" "$(grep -c '"stream":true' "$MOCK_LOG")" "^$((SYNTHS + 1))$"
 check "main run requests pcm16" "$(grep -c '"format":"pcm16"' "$MOCK_LOG")" "^$((SYNTHS + 1))$"
 check "request assistant message" "$(grep -c '"role":"assistant"' "$MOCK_LOG")" "^$MOCK_REQS$"
-check "request speed instruction" "$(grep -c '1.25 倍' "$MOCK_LOG")" "^$SYNTHS$"
+check "request speed instruction" "$(grep -c "speak a little faster" "$MOCK_LOG")" "^$SYNTHS$"
 check "request style prompt" "$(grep -c '测试风格' "$MOCK_LOG")" "^$SYNTHS$"
 check "request style tag" "$(grep -c '(温柔)' "$MOCK_LOG")" "^$((SYNTHS + 1))$"
 check "preset voice in request" "$(grep -c '"voice":"mimo_default"' "$MOCK_LOG")" "^$((SYNTHS + 2))$"

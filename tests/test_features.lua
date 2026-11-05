@@ -29,14 +29,47 @@ check(MiMoAPI:new{ style_tag = "" }:applyStyleTag("你好。") == "你好。", "
 check(MiMoAPI:new{ style_tag = "  磁性  " }:applyStyleTag("你好。") == "(磁性)你好。", "style tag trimmed")
 
 --------------------------------------------------------------- style instruction
-local inst = MiMoAPI:new{ style_prompt = "温柔的旁白" }:buildStyleInstruction(1.25)
-check(inst:find("温柔的旁白") ~= nil and inst:find("1.25 倍") ~= nil, "style+speed instruction: " .. inst)
-check(MiMoAPI:new{ style_prompt = "" }:buildStyleInstruction(1.0) == "", "no instruction at speed 1.0")
-check(MiMoAPI:new{ style_prompt = "" }:buildStyleInstruction(nil) == "", "no instruction without speed")
+local inst = MiMoAPI:new{ style_prompt = "温柔的旁白", speed_text = "语速稍快" }:buildStyleInstruction()
+check(inst == "温柔的旁白 语速稍快", "style+speed instruction: " .. inst)
+check(MiMoAPI:new{ style_prompt = "" }:buildStyleInstruction() == "", "no instruction without style or speed")
+check(MiMoAPI:new{ style_prompt = "旁白", speed_text = "   " }:buildStyleInstruction() == "旁白",
+    "blank speed text ignored")
+
+--------------------------------------------------------------- multilingual speed text
+local function roundtrip(text)
+    local p = MiMoAPI:new{ model = "mimo-v2.5-tts", audio_format = "mp3", speed_text = text }
+        :buildPayload("正文")
+    return p.messages[1].content
+end
+check(roundtrip("语速稍快，字正腔圆") == "语速稍快，字正腔圆", "chinese speed text verbatim")
+check(roundtrip("speak a little faster, with energy!") == "speak a little faster, with energy!",
+    "english speed text verbatim")
+check(roundtrip("早口で、明るく話して") == "早口で、明るく話して", "japanese speed text verbatim")
+check(roundtrip("  천천히 또박또박  ") == "천천히 또박또박", "korean speed text trimmed")
+check(roundtrip("poco più veloce, grazie") == "poco più veloce, grazie", "accents preserved")
+local mixed = "speak faster (像连珠炮)"
+check(roundtrip(mixed) == mixed, "mixed-language speed text verbatim")
+
+--------------------------------------------------------------- voicedesign speed
+local vd = MiMoAPI:new{ model = "mimo-v2.5-tts-voicedesign", audio_format = "mp3",
+    voice_description = "丝滑醇厚的中年男声", speed_text = "语速极快" }
+local pvd = vd:buildPayload("正文")
+check(pvd.messages[1].role == "user" and pvd.messages[1].content:find("语速极快") ~= nil,
+    "voicedesign carries speed in description: " .. tostring(pvd.messages[1].content))
+local vd2 = MiMoAPI:new{ model = "mimo-v2.5-tts-voicedesign", audio_format = "mp3",
+    voice_description = "语速缓慢沉稳的老者", speed_text = "语速极快" }
+local pvd2 = vd2:buildPayload("正文")
+check(pvd2.messages[1].content == "语速缓慢沉稳的老者",
+    "voicedesign never contradicts a described pace")
+local vd3 = MiMoAPI:new{ model = "mimo-v2.5-tts-voicedesign", audio_format = "mp3",
+    voice_description = "a calm, slow storyteller", speed_text = "speak faster" }
+local pvd3 = vd3:buildPayload("正文")
+check(pvd3.messages[1].content == "a calm, slow storyteller",
+    "voicedesign never contradicts an english pace")
 
 --------------------------------------------------------------- payload modes
 local preset = MiMoAPI:new{ model = "mimo-v2.5-tts", voice = "冰糖", audio_format = "mp3", style_tag = "温柔" }
-local p = preset:buildPayload("正文", 1.0)
+local p = preset:buildPayload("正文")
 check(p.audio.voice == "冰糖" and p.audio.format == "mp3", "preset payload voice/format")
 check(p.messages[#p.messages].content == "(温柔)正文", "preset payload style tag in assistant")
 check(p.audio.optimize_text_preview == nil, "preset payload has no optimize_text_preview")
@@ -44,20 +77,20 @@ check(p.stream == nil, "non-streaming payload has no stream key")
 
 local design = MiMoAPI:new{ model = "mimo-v2.5-tts-voicedesign", voice_description = "一位温和的女声旁白",
     optimize_text_preview = true, audio_format = "wav" }
-p = design:buildPayload("正文", 1.0)
+p = design:buildPayload("正文")
 check(p.messages[1].role == "user" and p.messages[1].content == "一位温和的女声旁白",
     "voicedesign user message is voice description")
 check(p.audio.voice == nil, "voicedesign payload has no voice")
 check(p.audio.optimize_text_preview == true, "voicedesign optimize_text_preview")
 
 local no_desc = MiMoAPI:new{ model = "mimo-v2.5-tts-voicedesign", voice_description = "" }
-local p2, err = no_desc:buildPayload("正文", 1.0)
+local p2, err = no_desc:buildPayload("正文")
 check(p2 == nil and err:find("音色描述") ~= nil, "voicedesign without description errors: " .. tostring(err))
 
 -- voiceclone with a real sample file
 local sample = "/tmp/mimottest/tone.wav"
 local clone = MiMoAPI:new{ model = "mimo-v2.5-tts-voiceclone", voice_sample = sample, audio_format = "mp3" }
-p = clone:buildPayload("正文", 1.0)
+p = clone:buildPayload("正文")
 check(type(p.audio.voice) == "string" and p.audio.voice:find("^data:audio/wav;base64,") ~= nil,
     "voiceclone data URI prefix: " .. tostring(p.audio.voice):sub(1, 30))
 local Base64 = require("base64")
@@ -68,19 +101,19 @@ f:close()
 check(Base64.decode(encoded) == raw, "voiceclone sample round-trips")
 
 local clone_missing = MiMoAPI:new{ model = "mimo-v2.5-tts-voiceclone", voice_sample = "/nonexistent.mp3" }
-p2, err = clone_missing:buildPayload("正文", 1.0)
+p2, err = clone_missing:buildPayload("正文")
 check(p2 == nil and err:find("找不到音色样本") ~= nil, "voiceclone missing sample errors")
 
 local mp3_clone = MiMoAPI:new{ model = "mimo-v2.5-tts-voiceclone", voice_sample = "/tmp/mimottest/fake.mp3" }
 local mf = io.open("/tmp/mimottest/fake.mp3", "wb")
 mf:write("ID3" .. string.rep("\0", 7) .. "\xff\xfb\x90\x64" .. string.rep("\0", 40))
 mf:close()
-p = mp3_clone:buildPayload("正文", 1.0)
+p = mp3_clone:buildPayload("正文")
 check(p.audio.voice:find("^data:audio/mpeg;base64,") ~= nil, "voiceclone mp3 mime")
 
 --------------------------------------------------------------- wav header
 p = MiMoAPI:new{ use_streaming = true, model = "mimo-v2.5-tts", voice = "mimo_default" }
-    :buildPayload("正文", 1.0, true)
+    :buildPayload("正文", true)
 check(p.stream == true and p.audio.format == "pcm16", "streaming payload uses pcm16 + stream flag")
 
 local stream_api = MiMoAPI:new{
@@ -90,7 +123,7 @@ local stream_api = MiMoAPI:new{
 }
 local out = "/tmp/mimottest/stream_test.wav"
 os.remove(out)
-local ok, res = stream_api:synthesize("这是流式合成测试。", 1.0, out)
+local ok, res = stream_api:synthesize("这是流式合成测试。", out)
 check(ok == true, "streaming synthesize ok: " .. tostring(res))
 local sf = io.open(out, "rb")
 local sdata = sf:read("*a")
@@ -111,7 +144,7 @@ local plain = MiMoAPI:new{
 }
 out = "/tmp/mimottest/plain_test.mp3"
 os.remove(out)
-ok, res = plain:synthesize("普通合成测试。", 1.0, out)
+ok, res = plain:synthesize("普通合成测试。", out)
 check(ok == true and io.open(out, "rb") ~= nil, "non-streaming mp3 synthesize ok: " .. tostring(res))
 
 local design_api = MiMoAPI:new{
@@ -120,7 +153,7 @@ local design_api = MiMoAPI:new{
     audio_format = "wav", cache_dir = "/tmp/mimottest",
 }
 out = "/tmp/mimottest/design_test.wav"
-ok, res = design_api:synthesize("音色设计测试。", 1.0, out)
+ok, res = design_api:synthesize("音色设计测试。", out)
 check(ok == true, "voicedesign synthesize ok (mock validated shape): " .. tostring(res))
 
 local clone_api = MiMoAPI:new{
@@ -129,7 +162,7 @@ local clone_api = MiMoAPI:new{
     audio_format = "wav", cache_dir = "/tmp/mimottest",
 }
 out = "/tmp/mimottest/clone_test.wav"
-ok, res = clone_api:synthesize("音色复刻测试。", 1.0, out)
+ok, res = clone_api:synthesize("音色复刻测试。", out)
 check(ok == true, "voiceclone synthesize ok (mock validated shape): " .. tostring(res))
 
 --------------------------------------------------------------- cache keys

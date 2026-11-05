@@ -2,17 +2,17 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mimo-tts\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-30 20:21+0800\n"
-"Language-Team: Chinese (Simplified)\n"
+"POT-Creation-Date: 2026-11-05 16:08+0800\n"
 "PO-Revision-Date: 2026-10-30 00:00+0000\n"
 "Last-Translator: auto\n"
+"Language-Team: Chinese (Simplified)\n"
 "Language: zh_CN\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
-#: _meta.lua:3 main.lua:209
+#: _meta.lua:3 main.lua:221
 msgid "MiMo TTS Read-aloud"
 msgstr "MiMo TTS 语音听书"
 
@@ -20,322 +20,330 @@ msgstr "MiMo TTS 语音听书"
 msgid "Listen to books with Xiaomi MiMo TTS"
 msgstr "用小米 MiMo TTS 朗读你的书"
 
-#: main.lua:57
+#: main.lua:58
 msgid "MiMo default"
 msgstr "MiMo-默认"
 
-#: main.lua:58
+#: main.lua:59
 msgid "Bingtang (Chinese, female)"
 msgstr "冰糖（中文·女）"
 
-#: main.lua:59
+#: main.lua:60
 msgid "Jasmine (Chinese, female)"
 msgstr "茉莉（中文·女）"
 
-#: main.lua:60
+#: main.lua:61
 msgid "Soda (Chinese, male)"
 msgstr "苏打（中文·男）"
 
-#: main.lua:61
+#: main.lua:62
 msgid "Birch (Chinese, male)"
 msgstr "白桦（中文·男）"
 
-#: main.lua:62
+#: main.lua:63
 msgid "Mia (English, female)"
 msgstr "Mia（英文·女）"
 
-#: main.lua:63
+#: main.lua:64
 msgid "Chloe (English, female)"
 msgstr "Chloe（英文·女）"
 
-#: main.lua:64
+#: main.lua:65
 msgid "Milo (English, male)"
 msgstr "Milo（英文·男）"
 
-#: main.lua:65
+#: main.lua:66
 msgid "Dean (English, male)"
 msgstr "Dean（英文·男）"
 
-#: main.lua:155
+#: main.lua:167
 msgid "MiMo TTS: start/stop reading"
 msgstr "MiMo TTS: 开始/停止听书"
 
-#: main.lua:157
+#: main.lua:169
 msgid "MiMo TTS: read current page"
 msgstr "MiMo TTS: 朗读本页"
 
-#: main.lua:159
+#: main.lua:171
 msgid "MiMo TTS: read the whole book"
 msgstr "MiMo TTS: 连续听书"
 
-#: main.lua:161
+#: main.lua:173
 msgid "MiMo TTS: stop reading"
 msgstr "MiMo TTS: 停止朗读"
 
-#: main.lua:163
+#: main.lua:175
 msgid "MiMo TTS: next segment"
 msgstr "MiMo TTS: 下一段"
 
-#: main.lua:165
+#: main.lua:177
 msgid "MiMo TTS: previous segment"
 msgstr "MiMo TTS: 上一段"
 
-#: main.lua:226
+#: main.lua:238
 msgid "Listen to the whole book (auto page turn)"
 msgstr "连续听书（自动翻页）"
 
-#: main.lua:232
+#: main.lua:244
 msgid "Read current page"
 msgstr "朗读当前页"
 
-#: main.lua:238
+#: main.lua:250
 msgid "Read selected text"
 msgstr "朗读选中文字"
 
-#: main.lua:244
+#: main.lua:256
 msgid "Next segment"
 msgstr "下一段"
 
-#: main.lua:250
+#: main.lua:262
 msgid "Previous segment"
 msgstr "上一段"
 
-#: main.lua:256
+#: main.lua:268
 msgid "Stop reading"
 msgstr "停止朗读"
 
-#: main.lua:262
+#: main.lua:274
 msgid "Test reading"
 msgstr "测试朗读"
 
-#: main.lua:268
+#: main.lua:280
 msgid "Playback diagnostics…"
 msgstr "播放器诊断…"
 
-#: main.lua:277
+#: main.lua:289
 msgid "Choose preset voice"
 msgstr "选择预置音色"
 
-#: main.lua:286
+#: main.lua:298
 msgid "Choose preset voice (current: %1)"
 msgstr "选择预置音色（当前：%1）"
 
-#: main.lua:293
+#: main.lua:305
 msgid "Streaming synthesis (steadier for long texts)"
 msgstr "流式合成（长文本更稳）"
 
-#: main.lua:302
+#: main.lua:314
 msgid "Streaming synthesis enabled"
 msgstr "已开启流式合成"
 
-#: main.lua:302
+#: main.lua:314
 msgid "Streaming synthesis disabled"
 msgstr "已关闭流式合成"
 
-#: main.lua:308
+#: main.lua:320
 msgid "Top menu icon"
 msgstr "顶部菜单图标"
 
-#: main.lua:318
+#: main.lua:330
 msgid "Underline text while reading"
 msgstr "播放时给文字加下划线"
 
-#: main.lua:330
+#: main.lua:342
 msgid "Reading underline enabled"
 msgstr "已开启朗读下划线"
 
-#: main.lua:330
+#: main.lua:342
 msgid "Reading underline disabled"
 msgstr "已关闭朗读下划线"
 
-#: main.lua:336
+#: main.lua:348
 msgid "API & model settings…"
 msgstr "接口与模型设置…"
 
-#: main.lua:342
+#: main.lua:354
 msgid "Voice & style settings…"
 msgstr "音色与风格设置…"
 
-#: main.lua:348
+#: main.lua:360
 msgid "Playback & segmentation settings…"
 msgstr "播放与分段设置…"
 
-#: main.lua:354
+#: main.lua:366
 msgid "Clear audio cache"
 msgstr "清除语音缓存"
 
-#: main.lua:360
+#: main.lua:372
 msgid "About MiMo TTS"
 msgstr "关于 MiMo TTS"
 
-#: main.lua:370
+#: main.lua:382
 msgid "MiMo TTS Read-aloud v%1"
 msgstr "MiMo TTS 语音听书 v%1"
 
-#: main.lua:499
+#: main.lua:511
 msgid "Reading icon added to the top menu (reopen the menu to see it)"
 msgstr "已在顶部菜单添加听书图标（重新打开菜单可见）"
 
-#: main.lua:500
+#: main.lua:512
 msgid "Reading icon removed from the top menu"
 msgstr "已移除顶部菜单听书图标"
 
-#: main.lua:549
+#: main.lua:561
 msgid "Voice changed to %1"
 msgstr "已切换音色：%1"
 
-#: main.lua:570
+#: main.lua:582
 msgid "Please open a book first"
 msgstr "请先打开一本书"
 
-#: main.lua:587
+#: main.lua:599
 msgid "No text selected (long-press to select text first)"
 msgstr "没有选中的文字（先长按选择文本）"
 
-#: main.lua:595
+#: main.lua:607
 msgid "No readable text found"
 msgstr "没有提取到可朗读的文字"
 
-#: main.lua:602
+#: main.lua:614
 msgid "Start reading (page %1, %2 segments)"
 msgstr "开始朗读（第 %1 页，共 %2 段）"
 
-#: main.lua:616
+#: main.lua:628
 msgid "Reading stopped"
 msgstr "已停止朗读"
 
-#: main.lua:623
+#: main.lua:635
 msgid "Finished reading"
 msgstr "听书结束"
 
-#: main.lua:668 main.lua:991
+#: main.lua:680 main.lua:1005
 msgid "MiMo TTS 合成失败：%1"
 msgstr ""
 
-#: main.lua:863
+#: main.lua:875
 msgid "MiMo TTS API & model settings"
 msgstr "MiMo TTS 接口与模型设置"
 
-#: main.lua:865
+#: main.lua:877
 msgid "API base URL"
 msgstr "API 地址"
 
-#: main.lua:866
+#: main.lua:878
 msgid "API key"
 msgstr "API Key"
 
-#: main.lua:866
+#: main.lua:878
 msgid "Required"
 msgstr "必填"
 
-#: main.lua:867
+#: main.lua:879
 msgid "TTS model"
 msgstr "模型"
 
-#: main.lua:868
+#: main.lua:880
 msgid "Audio format (mp3 / wav)"
 msgstr "音频格式（mp3 / wav）"
 
-#: main.lua:873 main.lua:913 main.lua:952
+#: main.lua:885 main.lua:925 main.lua:965
 msgid "Cancel"
 msgstr "取消"
 
-#: main.lua:880 main.lua:920 main.lua:959
+#: main.lua:892 main.lua:932 main.lua:972
 msgid "Save"
 msgstr "保存"
 
-#: main.lua:890 main.lua:929 main.lua:972
+#: main.lua:902 main.lua:941 main.lua:986
 msgid "Settings saved"
 msgstr "设置已保存"
 
-#: main.lua:903
+#: main.lua:915
 msgid "MiMo TTS voice & style settings"
 msgstr "MiMo TTS 音色与风格设置"
 
-#: main.lua:905
+#: main.lua:917
 msgid "Style tag (e.g. gentle; optional)"
 msgstr "风格标签（如 温柔/磁性，可留空）"
 
-#: main.lua:906
+#: main.lua:918
 msgid "Style prompt (natural-language instruction; optional)"
 msgstr "风格提示（自然语言指令，可留空）"
 
-#: main.lua:906
+#: main.lua:918
 msgid "e.g. A warm audiobook narrator"
 msgstr "例如：温柔的有声书旁白"
 
-#: main.lua:907
+#: main.lua:919
 msgid "Voice description (required for voice design)"
 msgstr "音色描述（音色设计模式必填）"
 
-#: main.lua:907
+#: main.lua:919
 msgid "e.g. A mellow, deep middle-aged male voice"
 msgstr "例如：丝滑醇厚的中年男声"
 
-#: main.lua:908
+#: main.lua:920
 msgid "Voice sample file (voice clone mode, mp3/wav)"
 msgstr "音色样本文件（音色复刻模式，mp3/wav）"
 
-#: main.lua:942
+#: main.lua:954
 msgid "MiMo TTS playback & segmentation settings"
 msgstr "MiMo TTS 播放与分段设置"
 
-#: main.lua:944
-msgid "Speed (1.0 = normal)"
-msgstr "语速（1.0 为正常语速）"
+#: main.lua:956
+msgid "AI speed text (natural language, empty = normal)"
+msgstr "AI 语速文本（自然语言，可留空）"
 
-#: main.lua:945
+#: main.lua:957
+msgid "Player speed (playback, 1.0 = normal)"
+msgstr "播放器倍速（播放时生效，1.0 为正常）"
+
+#: main.lua:958
 msgid "Max segment length (longer ones are split)"
 msgstr "单句最大字数（超长句自动切分）"
 
-#: main.lua:946
+#: main.lua:959
 msgid "Player command (empty = auto-detect)"
 msgstr "播放器命令（留空自动检测）"
 
-#: main.lua:947
+#: main.lua:960
 msgid "Playback backend (auto/command/opensles)"
 msgstr "播放后端（auto/command/opensles）"
 
-#: main.lua:984
+#: main.lua:998
 msgid "你好，这是 MiMo TTS 语音听书测试。"
 msgstr ""
 
-#: main.lua:987
+#: main.lua:1001
 msgid "Synthesizing test audio…"
 msgstr "正在合成测试音频…"
 
-#: main.lua:1004
+#: main.lua:1018
 msgid "Delete all cached audio files?"
 msgstr "清除所有已缓存的语音文件？"
 
-#: main.lua:1005
+#: main.lua:1019
 msgid "Delete"
 msgstr "清除"
 
-#: main.lua:1009
+#: main.lua:1023
 msgid "Audio cache cleared"
 msgstr "语音缓存已清除"
 
-#: player.lua:239
+#: player.lua:289
 msgid "当前后端："
 msgstr ""
 
-#: player.lua:241
+#: player.lua:291
 msgid "支持格式："
 msgstr ""
 
-#: player.lua:251
+#: player.lua:301
 msgid "注意："
 msgstr ""
 
-#: player.lua:260
+#: player.lua:305
+msgid "播放器倍速："
+msgstr ""
+
+#: player.lua:314
 msgid "可用命令行播放器："
 msgstr ""
 
-#: player.lua:260
+#: player.lua:314
 msgid "无"
 msgstr ""
 
-#: player.lua:262
+#: player.lua:316
 msgid "OpenSL ES：所有 Android 设备自带，无需安装"
 msgstr ""

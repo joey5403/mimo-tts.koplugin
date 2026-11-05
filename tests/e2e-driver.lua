@@ -61,9 +61,9 @@ local function run_e2e(ui)
         return orig_play(self, path)
     end
     local orig_synth = plugin.api.synthesize
-    plugin.api.synthesize = function(self, text, speed, path)
+    plugin.api.synthesize = function(self, text, path)
         synths = synths + 1
-        return orig_synth(self, text, speed, path)
+        return orig_synth(self, text, path)
     end
 
     local start_page = ui:getCurrentPage()
@@ -91,7 +91,7 @@ local function run_e2e(ui)
         local out_dir = "/tmp/mimottest"
 
         local function extra(name, api, path)
-            local ok, res = api:synthesize("额外测试：" .. name .. "。", 1.0, path)
+            local ok, res = api:synthesize("额外测试：" .. name .. "。", path)
             results["extra_" .. name] = tostring(ok == true)
             if not ok then
                 results["extra_" .. name .. "_error"] = tostring(res)

@@ -123,6 +123,7 @@ static uint64_t enqueued_total = 0;
 static uint32_t queue_count = 0;
 static uint32_t play_state = 1; /* STOPPED=1 PAUSED=2 PLAYING=3 */
 static uint32_t enq_index = 0;
+static uint32_t fmt_rate_milli = 24000000, fmt_channels = 1, fmt_bits = 16;
 
 static double now_s(void) {
     struct timespec ts;
@@ -139,6 +140,7 @@ uint64_t mock_enqueued_total(void) { return enqueued_total; }
 int mock_busy(void) { return queue_count > 0 && now_s() < busy_until; }
 uint32_t mock_play_state(void) { return play_state; }
 uint32_t mock_buffers_seen(void) { return enq_index; }
+uint32_t mock_rate_milli(void) { return fmt_rate_milli; }
 
 /* ---- vtable implementations ---- */
 static SLresult obj_realize(SLObjectItf self, SLboolean async) { (void)self; (void)async; return SL_RESULT_SUCCESS; }
@@ -154,7 +156,7 @@ static SLresult play_get_state(SLPlayItf self, SLuint32 *state) { (void)self; *s
 static SLresult bufq_enqueue(SLAndroidSimpleBufferQueueItf self, const void *buf, SLuint32 size) {
     (void)self; (void)buf;
     enqueued_total += size; enq_index++; queue_count = 1;
-    busy_until = now_s() + (double)size / 48000.0 * time_scale;
+    busy_until = now_s() + (double)size / (fmt_rate_milli / 1000.0 * fmt_channels * fmt_bits / 8.0) * time_scale;
     return SL_RESULT_SUCCESS;
 }
 static SLresult bufq_clear(SLAndroidSimpleBufferQueueItf self) { (void)self; queue_count = 0; busy_until = 0; return SL_RESULT_SUCCESS; }
@@ -233,6 +235,10 @@ static SLresult eng_create_audio_player(SLEngineItf self, SLObjectItf *player, v
         (const struct SLDataLocator_OutputMix_ *)snk_s->pLocator;
     if (!snk_loc || snk_loc->locatorType != SL_DATALOCATOR_OUTPUTMIX)
         return SL_RESULT_PARAMETER_INVALID;
+    /* remember the declared format: tests read it back via mock_rate_milli() */
+    fmt_rate_milli = fmt->samplesPerSec;
+    fmt_channels = fmt->numChannels;
+    fmt_bits = fmt->bitsPerSample;
     *player = player_obj; return SL_RESULT_SUCCESS;
 }
 

@@ -264,10 +264,18 @@ function OpenSLESPlayer:_ensurePlayer(fmt)
 
     local bufq_loc = ffi.new("struct SLDataLocator_AndroidSimpleBufferQueue_",
         SL_DATALOCATOR_ANDROIDSIMPLEBUFFERQUEUE, 2)
+    -- player-level speed: declaring a scaled sample rate makes the sink
+    -- consume the PCM faster or slower (pitch shifts with it, like a tape);
+    -- Android's OpenSL ES exposes no rate/pitch interface, so this is the
+    -- only in-backend way to change playback speed
+    local speed = tonumber(self.speed) or 1
+    if speed < 0.25 or speed > 4 then
+        speed = 1 -- sanity clamp; settings validate this anyway
+    end
     local pcm_fmt = ffi.new("struct SLDataFormat_PCM_",
         SL_DATAFORMAT_PCM,
         fmt.channels,
-        fmt.rate * 1000, -- samplesPerSec is in milliHz
+        math.floor(fmt.rate * 1000 * speed + 0.5), -- samplesPerSec is in milliHz
         fmt.bits,
         fmt.bits,
         fmt.channels == 1 and SL_SPEAKER_FRONT_CENTER

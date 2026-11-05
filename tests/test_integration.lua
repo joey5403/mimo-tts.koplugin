@@ -53,7 +53,7 @@ local api = MiMoAPI:new{
 }
 local out = "/tmp/mimottest/synth_test.wav"
 os.remove(out)
-local ok, err = api:synthesize("你好，MiMo。", 1.0, out)
+local ok, err = api:synthesize("你好，MiMo。", out)
 check(ok == true, "synthesize ok: " .. tostring(err))
 local f = io.open(out, "rb")
 local data = f:read("*a")
@@ -64,24 +64,24 @@ os.remove(out)
 -- wrong key -> auth error
 local api_bad = MiMoAPI:new{ base_url = "http://127.0.0.1:18923/v1", api_key = "wrong",
     model = "mimo-v2.5-tts", audio_format = "wav" }
-ok, err = api_bad:synthesize("hi", 1.0, out)
+ok, err = api_bad:synthesize("hi", out)
 check(ok == nil and err:find("认证失败") ~= nil, "auth failure message: " .. tostring(err))
 
 -- wrong model -> upstream error message surfaced
 local api_bad2 = MiMoAPI:new{ base_url = "http://127.0.0.1:18923/v1", api_key = "test-key",
     model = "wrong-model", audio_format = "wav" }
-ok, err = api_bad2:synthesize("hi", 1.0, out)
+ok, err = api_bad2:synthesize("hi", out)
 check(ok == nil and err:find("wrong-model", 1, true) ~= nil, "upstream error surfaced: " .. tostring(err))
 
 -- missing key -> local error
 local api_bad3 = MiMoAPI:new{ base_url = "http://127.0.0.1:18923/v1", model = "mimo-v2.5-tts" }
-ok, err = api_bad3:synthesize("hi", 1.0, out)
+ok, err = api_bad3:synthesize("hi", out)
 check(ok == nil and err:find("API key") ~= nil, "missing api key error: " .. tostring(err))
 
 -- connection refused -> graceful error
 local api_bad4 = MiMoAPI:new{ base_url = "http://127.0.0.1:1/v1", api_key = "k",
     model = "mimo-v2.5-tts", audio_format = "wav" }
-ok, err = api_bad4:synthesize("hi", 1.0, out)
+ok, err = api_bad4:synthesize("hi", out)
 check(ok == nil and type(err) == "string", "connection failure handled: " .. tostring(err))
 check(not io.open(out, "rb"), "no audio file written on failure")
 
@@ -147,7 +147,7 @@ local fake_api = {
         synthesized[text] = synthesized[text] or ("k" .. tostring(#synthesized + 1))
         return synthesized[text]
     end,
-    synthesize = function(_, text, speed, path)
+    synthesize = function(_, text, path)
         synthesized[text] = synthesized[text] or ("k" .. tostring(#synthesized + 1))
         local fh = io.open(path, "wb")
         fh:write("RIFFfakeWAVE")
