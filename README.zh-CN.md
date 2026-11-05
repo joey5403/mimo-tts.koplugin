@@ -300,3 +300,8 @@ make ci              # 钩子执行的内容：check + mo + test
 API 并运行全部测试；`tests/run_e2e.sh` 额外启动真实 KOReader 进程
 （`KO_HOME=<临时目录>`），用 `tests/e2e-driver.lua` user patch 驱动完整听书流程，
 断言自动翻页、缓存、朗读下划线与三种模型请求。
+
+## 致谢
+
+- [stradichenko/audiobook.koplugin](https://github.com/stradichenko/audiobook.koplugin)（AGPL-3.0）——Kindle 音频路线（GStreamer `mixersink` → `audiomgrd` → 蓝牙 A2DP）与随包捆绑的 `kindle-gst-play` 小工具来自该项目，逆向工程的全部功劳属于其作者。以原样（未修改）形式分发，详见 [`bin/NOTICE.md`](bin/NOTICE.md)。
+- [MiMo](https://mimo.mi.com)——提供合成能力的 TTS API。

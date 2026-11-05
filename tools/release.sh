@@ -59,7 +59,7 @@ STAGING=$(mktemp -d)
 trap 'rm -rf "$STAGING"' EXIT
 mkdir -p "$STAGING/mimo-tts.koplugin"
 cp -r _meta.lua main.lua mimoapi.lua textprovider.lua chunker.lua base64.lua \
-      player.lua openslesplayer.lua translations.lua mimo_version.lua icons l10n \
+      player.lua openslesplayer.lua translations.lua mimo_version.lua icons bin l10n \
       README.md README.zh-CN.md CHANGELOG.md install.sh \
       "$STAGING/mimo-tts.koplugin/"
 OUT="dist/mimo-tts.koplugin-$TAG.zip"

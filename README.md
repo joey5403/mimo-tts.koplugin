@@ -368,3 +368,8 @@ Android's), starts a contract-validating mock MiMo API and runs everything.
 (`KO_HOME=<temp dir>`) and drives the plugin through the complete listening
 flow with the `tests/e2e-driver.lua` user patch; assertions cover automatic
 page turns, caching, the read-aloud underline and all three models.
+
+## Acknowledgements
+
+- [stradichenko/audiobook.koplugin](https://github.com/stradichenko/audiobook.koplugin) (AGPL-3.0) -- the Kindle audio route (GStreamer `mixersink` → `audiomgrd` → Bluetooth A2DP) and the bundled `kindle-gst-play` helper come from that project; all credit for the reverse engineering belongs to its authors. Redistributed unmodified, see [`bin/NOTICE.md`](bin/NOTICE.md).
+- [MiMo](https://mimo.mi.com) -- the TTS API powering the synthesis.
