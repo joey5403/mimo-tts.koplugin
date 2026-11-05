@@ -54,9 +54,11 @@ underlined, and the underline moves on as soon as it has been read --
   one plays (with look-ahead and cross-page prefetching)
 - **Audio caching**: segments are cached by content hash under
   `koreader data dir/cache/mimo_tts/` — re-listening costs no extra requests
-- **Playback on every device**: Android's native OpenSL ES backend plus
-  auto-detected command line players (mpv / ffplay / mpg123 / madplay /
-  sox `play` / aplay / paplay / afplay), fully customizable
+- **Playback on every device**: Android's native OpenSL ES backend, a
+  bundled `kindle-gst-play` helper for Kindle (Bluetooth audio through
+  Amazon's private `mixersink` pipeline), plus auto-detected command line
+  players (mpv / ffplay / mpg123 / madplay / sox `play` / aplay / paplay /
+  afplay), fully customizable
 - **Top menu icon**: a 🔊 icon in the reader's top menu opens the plugin menu
   (toggleable from the menu)
 - **Gestures / keys / dispatcher**: every action is registered with the
@@ -125,7 +127,8 @@ the voice description and never contradicts a pace already described there
 **Player speed support**: mpv (`--speed`, pitch kept), ffplay (`atempo`,
 pitch kept), sox `play` (`tempo`, pitch kept), afplay (`-r`), and OpenSL
 ES/Android (declares a scaled sample rate, **pitch shifts with it**).  Other
-command line players do not support it and report a clear error.  Custom
+backends -- including the bundled Kindle `kindle-gst-play` -- do not support
+it and report a clear error.  Custom
 player commands should carry their own speed argument.  Player speed only
 affects playback -- synthesis and caching are untouched.
 
@@ -253,7 +256,7 @@ The playback manager picks the best backend automatically (force one via
 | --- | --- | --- | --- |
 | 1 | custom command `player_cmd` | any | explicit user configuration wins over everything |
 | 2 | **OpenSL ES (LuaJIT FFI)** | **all Android** | talks to the NDK public library `libOpenSLES.so` (shipped with Android 2.3+): no external binaries, no KOReader changes, no root |
-| 3 | command line player auto-detection | desktop Linux / Kobo / Kindle / PocketBook / reMarkable / macOS | `mpv → ffplay → mpg123 → madplay → ogg123 → sox play → aplay → paplay → afplay` |
+| 3 | command line player auto-detection | desktop Linux / Kobo / Kindle / PocketBook / reMarkable / macOS | `kindle-gst-play (bundled) → mpv → ffplay → mpg123 → madplay → ogg123 → sox play → aplay → paplay → afplay` |
 | 4 | clear error + playback diagnostics | — | *Playback diagnostics…* shows the active backend, formats and available players |
 
 - **format negotiation**: backends declare the formats they accept and the
@@ -275,7 +278,11 @@ The playback manager picks the best backend automatically (force one via
   - **Android**: works out of the box (native OpenSL ES backend)
   - **desktop Linux / macOS**: mpv/ffplay are usually present; install one
     otherwise
-  - **Kobo / Kindle / PocketBook / reMarkable**: any supported command line
+  - **Kindle**: the bundled `kindle-gst-play` routes audio to Bluetooth
+    headphones through Amazon's private `mixersink` pipeline -- pair the
+    headset in the Kindle system settings first (verified on Kindle Basic
+    2022; status per model in [docs/kindle.md](docs/kindle.md))
+  - **Kobo / PocketBook / reMarkable**: any supported command line
     player must exist on the device (pair Bluetooth headsets at the system
     level); or specify `player_cmd` yourself
   - if none of these apply, *Playback diagnostics…* explains what is missing
@@ -298,7 +305,7 @@ The playback manager picks the best backend automatically (force one via
 | synthesis fails with "cannot connect" | check network and the API base URL |
 | voice design complains about a missing voice description | fill in *Voice description* under *Voice & style settings* |
 | voice sample file not found | fix the mp3/wav path under *Voice & style settings* |
-| no audio player found | install mpv (or friends), or set *Player command* |
+| no audio player found | install mpv (or friends), or set *Player command*; on Kindle the bundled helper is auto-detected -- see [docs/kindle.md](docs/kindle.md) |
 | no readable text found | the page may be a scanned image (PDFs need a text layer); use *Read selected text* after long-pressing |
 | no sound | check volume/Bluetooth, then try *Test reading* |
 
