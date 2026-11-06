@@ -8,7 +8,7 @@
 流式合成、分段合成缓存、上一段/下一段导航。
 
 功能实现遵循官方文档：
-<https://mimo.mi.com/docs/zh-CN/quick-start/usage-guide/audio/speech-synthesis-v2.5>
+<https://mimo.mi.com/docs/en-US/quick-start/usage-guide/audio/speech-synthesis-v2.5>
 
 ## 预览
 
