@@ -2,7 +2,7 @@
 Xiaomi MiMo TTS client.
 
 Implements the documented MiMo speech-synthesis API
-(<https://mimo.mi.com/docs/zh-CN/quick-start/usage-guide/audio/speech-synthesis-v2.5>):
+(<https://mimo.mi.com/docs/en-US/quick-start/usage-guide/audio/speech-synthesis-v2.5>):
 
     POST {base_url}/chat/completions
     api-key: <key>

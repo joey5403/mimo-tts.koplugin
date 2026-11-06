@@ -11,8 +11,8 @@ Supports continuous listening with automatic page turns, preset voices, style
 tags / natural-language style control, voice design and voice cloning,
 streaming synthesis, sentence-level caching, and next/previous navigation.
 
-Implementation follows the official documentation
-(in Chinese): <https://mimo.mi.com/docs/zh-CN/quick-start/usage-guide/audio/speech-synthesis-v2.5>
+Implementation follows the official documentation:
+<https://mimo.mi.com/docs/en-US/quick-start/usage-guide/audio/speech-synthesis-v2.5>
 
 ## Preview
 
