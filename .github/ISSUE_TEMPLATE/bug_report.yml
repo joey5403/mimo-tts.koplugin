@@ -1,0 +1,100 @@
+name: Bug report / 缺陷反馈
+description: Something does not work / 某功能不工作
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting! The more environment detail you paste, the faster we can fix it.
+        感谢反馈！环境信息越完整，修复越快。
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened / 问题描述
+      description: A clear and concise description of the bug. / 请清晰描述问题。
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce / 复现步骤
+      placeholder: |
+        1. Open a book ...
+        2. Tap the 🔊 icon → "Read current page" ...
+        3. ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior / 期望行为
+
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform / 运行平台
+      options:
+        - Android
+        - Kindle
+        - Kobo
+        - PocketBook
+        - reMarkable
+        - Desktop Linux
+        - macOS
+        - Windows (WSL)
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: device
+    attributes:
+      label: Device & firmware/OS / 设备型号与固件/系统
+      placeholder: e.g. Kindle PW5 5.19.2 / OnePlus Android 16 / Ubuntu 24.04
+    validations:
+      required: true
+
+  - type: input
+    id: versions
+    attributes:
+      label: Plugin & KOReader versions / 插件与 KOReader 版本
+      placeholder: e.g. v1.0.7 / KOReader 2026.10
+    validations:
+      required: true
+
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Playback diagnostics / 播放器诊断输出
+      description: |
+        Plugin menu → "Playback diagnostics…" (播放器诊断…), paste the whole output.
+        插件菜单里点"播放器诊断…"，把输出完整粘贴到这里。
+      render: text
+
+  - type: textarea
+    id: settings
+    attributes:
+      label: TTS settings / TTS 设置
+      description: Model / voice / streaming / AI speed text / player speed / style prompt (as applicable).
+      render: text
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / 日志
+      description: |
+        Crashes: logcat/tombstone (Android) or crash.log. Otherwise a KOReader log excerpt.
+        崩溃请附 logcat/tombstone（安卓）或 crash.log；其他问题附 KOReader 日志片段。
+      render: text
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checklist / 检查项
+      options:
+        - label: I have searched existing issues / 我搜索过已有 issue
+        - label: For Kindle audio problems, I have read docs/kindle.md / 若是 Kindle 音频问题，我已读 docs/kindle.md

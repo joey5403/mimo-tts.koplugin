@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Documentation / 使用文档
+    url: https://github.com/joey5403/mimo-tts.koplugin#readme
+    about: Setup, settings and platform notes / 安装、设置与平台说明
+  - name: Kindle support status / Kindle 支持现状
+    url: https://github.com/joey5403/mimo-tts.koplugin/blob/main/docs/kindle.md
+    about: Audio route status, known limitations and roadmap / 音频路线现状、已知限制与路线图
