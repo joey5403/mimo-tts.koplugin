@@ -14,11 +14,12 @@ for getting audio out of a jailbroken Kindle.
 | MiMo synthesis (incl. streaming) | Works | `socket`/`http` -- network only |
 | Segmentation, sentence cache, underline | Works | File I/O |
 | Gestures / dispatcher bindings | Works | Platform independent |
-| **Playback** | **Blocked** | Two gates below |
+| **Playback** | **Works** (bundled helper) | Bluetooth via firmware mixersink; see the soft-float note for FW <= 5.16.2.1.1 |
 
-In short: everything up to and including synthesis works; the audio file is
-produced and cached, and the last mile -- getting sound out of the device --
-is what remains.
+In short: synthesis, caching and (on tested models) playback all work.  The
+bundled GStreamer helper feeds the firmware's private `mixersink` pipeline,
+which routes to Bluetooth A2DP.  Older, soft-float firmware is covered in the
+section below.
 
 ## Gate 1: no player binary
 
@@ -51,6 +52,39 @@ see `bin/NOTICE.md`) which feeds PCM into `mixersink`, plus a glibc runtime so
 it runs on the Kindle's older system glibc.  It is auto-detected as a
 wav-only player backend; verified on Kindle Basic 2022 (11th gen) by the
 upstream project.
+
+## Soft-float firmware (FW <= 5.16.2.1.1)
+
+Kindles that predate firmware **5.16.3** run a **soft-float** userland
+(Amazon switched the ABI at 5.16.3).  There the bundled `kindle-gst-play`
+helper (hard-float, Nix glibc 2.42 loader) still starts and even answers
+`--version`, so auto-detection selects it -- but at playback time its
+`dlopen()` of the system soft-float `libgstreamer-0.10.so` cannot work, the
+pipeline dies immediately, and the plugin looks silent: synthesis and caching
+are fine, no sound comes out.
+
+The fix is to ship a native **soft-float** build of the helper as well:
+
+* `bin/kindle-gst-play-pw2` -- audiobook.koplugin's
+  `kindle/gst-play-native-pw2`, built with the `kindlepw2` (soft-float)
+  toolchain and using the Kindle system loader `/lib/ld-linux.so.3`
+  (GLIBC_2.4 symbols), so it links against the firmware's own soft-float
+  GStreamer 0.10;
+* `player.lua` uses it first when it probes OK and only afterwards falls back
+  to the bundled hard-float loader chain;
+* player stdout/stderr is appended to
+  `cache/mimo_tts/mimo_tts_player.log` instead of `/dev/null`, so a silent
+  failure is diagnosable.
+
+Verified on **Kindle Oasis (8th gen, 2016), firmware 5.16.2.1.1** (the final
+firmware for that model) with a Bluetooth headset paired in the Kindle system
+settings; the soft-float helper feeds WAV into the same firmware `mixersink`
+pipeline, and the firmware routes it to A2DP (`audiomgrd`).
+
+Troubleshooting: if `mimo_tts_player.log` shows `cannot load libgstreamer`,
+confirm that `bin/kindle-gst-play-pw2` is the soft-float build --
+`elf` interpreter must be `/lib/ld-linux.so.3`, not
+`/lib/ld-linux-armhf.so.3`.
 
 ## Scenarios and plan
 

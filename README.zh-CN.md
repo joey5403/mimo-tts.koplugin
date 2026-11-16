@@ -227,6 +227,7 @@ Content-Type: application/json
   - **Kindle**：捆绑的 `kindle-gst-play` 经亚马逊私有 `mixersink` 管道输出到蓝牙耳机
     ——先在 Kindle 系统设置里配对好蓝牙耳机（Kindle Basic 2022 已验证；各机型
     状态见 [docs/kindle.zh-CN.md](docs/kindle.zh-CN.md)）
+  - **老固件 Kindle（≤ 5.16.2.1.1）**：这类固件是软浮点用户态，随包的硬浮点 `kindle-gst-play` 无法解码；插件会优先使用软浮点助手（`bin/kindle-gst-play-pw2`）——见 [docs/kindle.zh-CN.md](docs/kindle.zh-CN.md) 的「软浮点固件」一节
   - **Kobo / PocketBook / reMarkable**：需要设备上有任一受支持的命令行播放器
     （蓝牙耳机需系统侧配对好）；也可用 `player_cmd` 自己指定
   - 全部不满足时，菜单“播放器诊断…”会说明缺什么；没有任何音频硬件的设备

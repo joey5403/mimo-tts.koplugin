@@ -13,9 +13,9 @@
 | MiMo 合成（含流式） | ✅ 可用 | `socket`/`http`，只需联网 |
 | 分段、句级缓存、划线 | ✅ 可用 | 文件 I/O |
 | 手势 / 调度器绑定 | ✅ 可用 | 平台无关 |
-| **播放出声** | ❌ **受阻** | 见下面两道关 |
+| **播放出声** | ✅ 可用（捆绑助手） | 蓝牙经固件 mixersink 输出；老固件（≤ 5.16.2.1.1）见下方「软浮点固件」 |
 
-一句话：到合成为止的全链路都能跑——音频文件会正常生成并缓存，剩下的就是"让设备发出声音"这最后一公里。
+一句话：合成、缓存以及（在已验证机型上）播放出声都已跑通——捆绑的 GStreamer 助手把音频喂进固件私有 `mixersink` 管道，再由固件路由到蓝牙 A2DP。老固件（软浮点）的处理见下一节。
 
 ## 关卡 1：没有播放器二进制
 
@@ -33,6 +33,20 @@ WAV → GStreamer 0.10 私有 "mixersink" → audiomgrd → audio.a2dp.default.s
 ```
 
 本插件捆绑了他们项目的 `kindle-gst-play` 小工具（AGPL-3.0，原样不改动——见 `bin/NOTICE.md`），负责把 PCM 喂进 `mixersink`，并附带 glibc 运行时以兼容 Kindle 较旧的系统 glibc。它会被自动识别为 wav-only 播放后端；该方案已在 Kindle Basic 2022（11 代）上验证。
+
+## 软浮点固件（FW ≤ 5.16.2.1.1）
+
+**5.16.3** 之前的 Kindle 固件使用**软浮点**用户态（亚马逊从 5.16.3 起才切到硬浮点 ABI）。在这类设备上，随包捆绑的 `kindle-gst-play`（硬浮点，Nix glibc 2.42 loader）仍然能启动、`--version` 也能通过，所以自动检测会选中它——但真正播放时，它要 `dlopen()` 系统里**软浮点**的 `libgstreamer-0.10.so`，ABI 不匹配导致管道立即失败；表现就是：合成、缓存都正常，但完全没有声音。
+
+解决办法是额外随包提供一个**软浮点**版本的小工具：
+
+* `bin/kindle-gst-play-pw2`——来自 audiobook.koplugin 的 `kindle/gst-play-native-pw2`，用 `kindlepw2`（软浮点）工具链构建，走 Kindle 系统 loader `/lib/ld-linux.so.3`（GLIBC_2.4 符号），直接链接固件自带的软浮点 GStreamer 0.10；
+* `player.lua` 在探测通过时优先使用它，失败后才回退到原来的硬浮点 loader 链；
+* 播放器的 stdout/stderr 改为追加写入 `cache/mimo_tts/mimo_tts_player.log`（不再是 `/dev/null`），静默失败也能查。
+
+已在 **Kindle Oasis（8 代，2016），固件 5.16.2.1.1**（该机型最后一个固件）上验证，蓝牙耳机需先在 Kindle 系统设置里配对；软浮点助手把 WAV 喂进同一套固件 `mixersink` 管道，由固件（`audiomgrd`）路由到 A2DP。
+
+排查：如果 `mimo_tts_player.log` 出现 `cannot load libgstreamer`，确认 `bin/kindle-gst-play-pw2` 是软浮点版本——ELF 解释器应为 `/lib/ld-linux.so.3`，而不是 `/lib/ld-linux-armhf.so.3`。
 
 ## 情景与计划
 

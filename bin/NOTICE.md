@@ -28,3 +28,14 @@ not linked.
   ```
   LD_LIBRARY_PATH=bin/lib bin/lib/ld-linux-armhf.so.3 bin/kindle-gst-play <file.wav>
   ```
+
+## kindle-gst-play-pw2
+
+- **Source**: [stradichenko/audiobook.koplugin](https://github.com/stradichenko/audiobook.koplugin)
+  (`kindle/gst-play-native-pw2`, same `gst-play 0.6.2-compat` sources)
+- **License**: AGPL-3.0-only -- see [LICENSE-gst-play.txt](LICENSE-gst-play.txt)
+- **Changes**: none (binary redistributed unmodified).
+- **Why**: soft-float Kindle firmware (FW <= 5.16.2.1.1, e.g. Kindle Oasis 1)
+  cannot `dlopen()` the hard-float bundle's system `libgstreamer-0.10`; this
+  build uses the Kindle system loader `/lib/ld-linux.so.3` and works on those
+  devices.  `player.lua` prefers it when present; see `docs/kindle.md`.

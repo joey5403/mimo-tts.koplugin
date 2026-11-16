@@ -85,6 +85,19 @@ end
 --- any other platform the armv7l binary is rejected like a missing player.
 local function bundled_gst_play()
     local base = plugin_dir() .. "/bin"
+    -- Prefer a native soft-float build when one is installed next to the
+    -- bundled hard-float binary: on soft-float Kindle firmware (FW <=
+    -- 5.16.2.1.1) the bundled hard-float helper starts (its --version probe
+    -- passes), but at playback time its dlopen() of the system's soft-float
+    -- libgstreamer-0.10 cannot work and the pipeline dies silently.
+    -- bin/kindle-gst-play-pw2 is audiobook.koplugin's soft-float build.
+    for _, extra in ipairs({ "kindle-gst-play-pw2", "kindle-gst-play-native-pw2" }) do
+        local direct = util.shell_escape({ base .. "/" .. extra })
+        if shell_ok(direct .. " --version >/dev/null 2>&1")
+            or shell_ok(direct .. " --probe >/dev/null 2>&1") then
+            return direct
+        end
+    end
     local cmd = string.format("LD_LIBRARY_PATH=%s %s %s",
         util.shell_escape({ base .. "/lib" }),
         util.shell_escape({ base .. "/lib/ld-linux-armhf.so.3" }),
@@ -174,8 +187,11 @@ function CommandBackend:play(file_path)
                 tostring(self.cached_name))
         end
     end
-    local full = string.format("%s%s %s%s >/dev/null 2>&1 & echo $! > %s",
-        cmd, pre, util.shell_escape({ file_path }), post, util.shell_escape({ self.pid_file }))
+    local logdir = self.pid_file:match("^(.*/)") or "/tmp/"
+    local log = logdir .. "mimo_tts_player.log"
+    local full = string.format("%s%s %s%s >> %s 2>&1 & echo $! > %s",
+        cmd, pre, util.shell_escape({ file_path }), post,
+        util.shell_escape({ log }), util.shell_escape({ self.pid_file }))
     logger.dbg("MiMoTTS: spawn player:", full)
     shell_ok(full)
     self.last_file = file_path

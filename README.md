@@ -282,6 +282,10 @@ The playback manager picks the best backend automatically (force one via
     headphones through Amazon's private `mixersink` pipeline -- pair the
     headset in the Kindle system settings first (verified on Kindle Basic
     2022; status per model in [docs/kindle.md](docs/kindle.md))
+  - **Kindle on old firmware (<= 5.16.2.1.1)**: those builds use a soft-float
+    userland, where the bundled hard-float `kindle-gst-play` cannot decode;
+    a soft-float helper (`bin/kindle-gst-play-pw2`) is preferred automatically
+    -- see [docs/kindle.md](docs/kindle.md), section 'Soft-float firmware'.
   - **Kobo / PocketBook / reMarkable**: any supported command line
     player must exist on the device (pair Bluetooth headsets at the system
     level); or specify `player_cmd` yourself
